@@ -452,6 +452,20 @@ function tplStep3() {
           </div>
         </div>
 
+        <div class="form-group">
+          <label class="form-label">Método de pago</label>
+          <div class="payment-methods" id="paymentMethods">
+            ${['Efectivo','Nequi','Daviplata','Tarjeta'].map(m => `
+              <button type="button"
+                class="pay-btn${f.payment === m ? ' pay-selected' : ''}"
+                data-method="${m}"
+                onclick="pickPayment('${m}')">
+                <span class="pay-icon">${{Efectivo:'💵',Nequi:'📱',Daviplata:'📲',Tarjeta:'💳'}[m]}</span>
+                <span class="pay-label">${m}</span>
+              </button>`).join('')}
+          </div>
+        </div>
+
         <button type="submit" class="btn-primary" id="btnConfirm" style="margin-top:8px">
           Confirmar cita
           <svg class="btn-arrow" viewBox="0 0 20 20" width="18" height="18" fill="none">
@@ -569,7 +583,8 @@ function snapshotForm() {
     name:    get('iName'),
     phone:   get('iPhone'),
     email:   get('iEmail'),
-    service: state.form.service || '', // viene de pickService(), no del DOM
+    service: state.form.service  || '',
+    payment: state.form.payment  || '',
   };
 }
 
@@ -578,6 +593,15 @@ function toggleServiceSelect() {
   if (!sel) return;
   const isOpen = sel.classList.toggle('open');
   sel.querySelector('.cs-trigger').setAttribute('aria-expanded', isOpen);
+}
+
+function pickPayment(method) {
+  state.form.payment = method;
+  document.querySelectorAll('.pay-btn').forEach(b => {
+    b.classList.toggle('pay-selected', b.dataset.method === method);
+  });
+  const pm = document.getElementById('paymentMethods');
+  if (pm) pm.classList.remove('pay-error');
 }
 
 function pickService(value) {
@@ -626,13 +650,24 @@ function submitForm(e) {
     return;
   }
 
-  // Validar custom select manualmente (no participa en checkValidity)
+  // Validar custom select de servicio
   if (!state.form.service) {
     const sel = document.getElementById('serviceSelect');
     if (sel) {
       sel.classList.add('cs-error');
       sel.scrollIntoView({ behavior: 'smooth', block: 'center' });
       setTimeout(() => sel.classList.remove('cs-error'), 2000);
+    }
+    return;
+  }
+
+  // Validar método de pago
+  if (!state.form.payment) {
+    const pm = document.getElementById('paymentMethods');
+    if (pm) {
+      pm.classList.add('pay-error');
+      pm.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      setTimeout(() => pm.classList.remove('pay-error'), 2000);
     }
     return;
   }

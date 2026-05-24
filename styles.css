@@ -837,6 +837,57 @@ body {
   animation: shake .3s ease;
 }
 
+/* ===== MÉTODO DE PAGO ===== */
+.payment-methods {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.pay-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 14px 8px;
+  background: var(--surface);
+  border: 1.5px solid var(--accent);
+  border-radius: 14px;
+  cursor: pointer;
+  transition: border-color .2s, background .2s, box-shadow .2s;
+  font-family: inherit;
+}
+
+.pay-btn:hover {
+  border-color: var(--primary);
+  background: var(--surface-2);
+}
+
+.pay-icon { font-size: 1.4rem; line-height: 1; }
+
+.pay-label {
+  font-size: .72rem;
+  font-weight: 600;
+  letter-spacing: .05em;
+  color: var(--text);
+}
+
+.pay-btn.pay-selected {
+  border-color: var(--primary);
+  background: linear-gradient(135deg, rgba(184,151,58,.09), rgba(212,170,80,.13));
+  box-shadow: 0 2px 12px rgba(184,151,58,.2);
+}
+
+.pay-btn.pay-selected .pay-label {
+  color: var(--primary-dk);
+  font-weight: 700;
+}
+
+.payment-methods.pay-error .pay-btn {
+  border-color: #c0392b;
+  animation: shake .3s ease;
+}
+
 /* ===== PANTALLA DE CONFIRMACIÓN ===== */
 .confirm-screen {
   text-align: center;
