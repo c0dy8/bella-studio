@@ -469,11 +469,7 @@ function tplStep3() {
 ============================================================ */
 function tplConfirm() {
   const s         = state.specialist;
-  const nombre    = state.form.name    || '';
-  const servicio  = state.form.service || '';
-  const telefono  = state.form.phone   || '';
-  const correo    = state.form.email   || '';
-  const firstName = nombre.split(' ')[0]; // solo el primer nombre para el saludo
+  const firstName = (state.form.name || '').split(' ')[0];
 
   return `
     <div class="step-view confirm-screen">
@@ -486,48 +482,13 @@ function tplConfirm() {
         </svg>
       </div>
 
-      <h2 class="confirm-title">¡Gracias, <em>${firstName}!</em></h2>
+      <h2 class="confirm-title">¡Tu cita está<br><em>confirmada!</em></h2>
 
-      <p class="confirm-subtitle">Tu cita está confirmada</p>
-
-      <!-- Detalle de la cita -->
-      <div class="confirm-card">
-        <div class="confirm-row">
-          <span class="confirm-icon">👤</span>
-          <div>
-            <span class="confirm-row-label">Cliente</span>
-            <span class="confirm-row-value">${nombre}</span>
-          </div>
-        </div>
-        <div class="confirm-row">
-          <span class="confirm-icon">✂️</span>
-          <div>
-            <span class="confirm-row-label">Especialista</span>
-            <span class="confirm-row-value">${s.name} · <em>${s.specialty}</em></span>
-          </div>
-        </div>
-        <div class="confirm-row">
-          <span class="confirm-icon">💆</span>
-          <div>
-            <span class="confirm-row-label">Servicio</span>
-            <span class="confirm-row-value">${servicio}</span>
-          </div>
-        </div>
-        <div class="confirm-row">
-          <span class="confirm-icon">📅</span>
-          <div>
-            <span class="confirm-row-label">Fecha y hora</span>
-            <span class="confirm-row-value">${spanishDate(state.date)} · ${state.time}</span>
-          </div>
-        </div>
-        <div class="confirm-row">
-          <span class="confirm-icon">📱</span>
-          <div>
-            <span class="confirm-row-label">Contacto</span>
-            <span class="confirm-row-value">${telefono} · ${correo}</span>
-          </div>
-        </div>
-      </div>
+      <p class="confirm-msg">
+        Gracias, <strong>${firstName}</strong>. Te esperamos el
+        <strong>${spanishDate(state.date)}</strong><br>
+        a las <strong>${state.time}</strong> con <strong>${s.name}</strong>.
+      </p>
 
       <p class="confirm-secondary">
         Recibirás un recordatorio en tu WhatsApp<br>y correo electrónico.
