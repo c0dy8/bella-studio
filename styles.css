@@ -863,7 +863,7 @@ body {
   background: var(--surface-2);
 }
 
-.pay-icon { width: 34px; height: 26px; color: var(--text); }
+.pay-icon { width: 34px; height: 34px; color: var(--text); }
 
 .pay-label {
   font-size: .72rem;
