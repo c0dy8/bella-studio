@@ -460,7 +460,7 @@ function tplStep3() {
               class="pay-btn${f.payment === 'Efectivo' ? ' pay-selected' : ''}"
               data-method="Efectivo"
               onclick="pickPayment('Efectivo')">
-              <svg class="pay-icon" viewBox="0 0 32 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <svg class="pay-icon" viewBox="0 0 32 24" fill="none">
                 <rect x="1" y="1" width="30" height="22" rx="3" stroke="currentColor" stroke-width="1.8"/>
                 <circle cx="16" cy="12" r="5" stroke="currentColor" stroke-width="1.8"/>
                 <line x1="1" y1="6" x2="31" y2="6" stroke="currentColor" stroke-width="1.5"/>
@@ -470,15 +470,26 @@ function tplStep3() {
             </button>
 
             <button type="button"
+              class="pay-btn${f.payment === 'Tarjeta' ? ' pay-selected' : ''}"
+              data-method="Tarjeta"
+              onclick="pickPayment('Tarjeta')">
+              <svg class="pay-icon" viewBox="0 0 32 24" fill="none">
+                <rect x="1" y="1" width="30" height="22" rx="3" stroke="currentColor" stroke-width="1.8"/>
+                <line x1="1" y1="8" x2="31" y2="8" stroke="currentColor" stroke-width="3"/>
+                <rect x="4" y="13" width="8" height="4" rx="1" stroke="currentColor" stroke-width="1.5"/>
+              </svg>
+              <span class="pay-label">Tarjeta</span>
+            </button>
+
+            <button type="button"
               class="pay-btn${f.payment === 'Transferencia' ? ' pay-selected' : ''}"
               data-method="Transferencia"
               onclick="pickPayment('Transferencia')">
-              <svg class="pay-icon" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <rect x="8" y="2" width="16" height="28" rx="3" stroke="currentColor" stroke-width="1.8"/>
-                <line x1="12" y1="7" x2="20" y2="7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-                <circle cx="16" cy="25" r="1.5" fill="currentColor"/>
-                <polyline points="5,16 11,11 11,21" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
-                <polyline points="27,16 21,11 21,21" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+              <svg class="pay-icon" viewBox="0 0 32 24" fill="none">
+                <polyline points="1,8 9,2 9,14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                <line x1="9" y1="8" x2="23" y2="8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                <polyline points="31,16 23,10 23,22" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                <line x1="23" y1="16" x2="9" y2="16" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
               </svg>
               <span class="pay-label">Transferencia</span>
             </button>
