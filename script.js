@@ -455,14 +455,34 @@ function tplStep3() {
         <div class="form-group">
           <label class="form-label">Método de pago</label>
           <div class="payment-methods" id="paymentMethods">
-            ${['Efectivo','Nequi','Daviplata','Tarjeta'].map(m => `
-              <button type="button"
-                class="pay-btn${f.payment === m ? ' pay-selected' : ''}"
-                data-method="${m}"
-                onclick="pickPayment('${m}')">
-                <span class="pay-icon">${{Efectivo:'💵',Nequi:'📱',Daviplata:'📲',Tarjeta:'💳'}[m]}</span>
-                <span class="pay-label">${m}</span>
-              </button>`).join('')}
+
+            <button type="button"
+              class="pay-btn${f.payment === 'Efectivo' ? ' pay-selected' : ''}"
+              data-method="Efectivo"
+              onclick="pickPayment('Efectivo')">
+              <svg class="pay-icon" viewBox="0 0 32 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect x="1" y="1" width="30" height="22" rx="3" stroke="currentColor" stroke-width="1.8"/>
+                <circle cx="16" cy="12" r="5" stroke="currentColor" stroke-width="1.8"/>
+                <line x1="1" y1="6" x2="31" y2="6" stroke="currentColor" stroke-width="1.5"/>
+                <line x1="1" y1="18" x2="31" y2="18" stroke="currentColor" stroke-width="1.5"/>
+              </svg>
+              <span class="pay-label">Efectivo</span>
+            </button>
+
+            <button type="button"
+              class="pay-btn${f.payment === 'Transferencia' ? ' pay-selected' : ''}"
+              data-method="Transferencia"
+              onclick="pickPayment('Transferencia')">
+              <svg class="pay-icon" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect x="8" y="2" width="16" height="28" rx="3" stroke="currentColor" stroke-width="1.8"/>
+                <line x1="12" y1="7" x2="20" y2="7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                <circle cx="16" cy="25" r="1.5" fill="currentColor"/>
+                <polyline points="5,16 11,11 11,21" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+                <polyline points="27,16 21,11 21,21" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+              <span class="pay-label">Transferencia</span>
+            </button>
+
           </div>
         </div>
 
