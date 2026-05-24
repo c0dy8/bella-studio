@@ -858,11 +858,11 @@ body {
 
 .confirm-title {
   font-family: 'Cormorant Garamond', serif;
-  font-size: 1.9rem;
+  font-size: 2rem;
   font-weight: 700;
   color: var(--text);
-  line-height: 1.25;
-  margin-bottom: 14px;
+  line-height: 1.2;
+  margin-bottom: 6px;
   letter-spacing: .01em;
 }
 
@@ -871,20 +871,73 @@ body {
   color: var(--primary);
 }
 
-.confirm-msg {
-  font-size: .95rem;
+.confirm-subtitle {
+  font-size: .7rem;
+  font-weight: 600;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--text-light);
+  margin-bottom: 24px;
+}
+
+/* Tarjeta resumen de confirmación */
+.confirm-card {
+  background: var(--surface);
+  border: 1.5px solid var(--accent);
+  border-radius: 18px;
+  padding: 6px 20px;
+  margin-bottom: 20px;
+  text-align: left;
+  box-shadow: var(--sh-card);
+}
+
+.confirm-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 13px 0;
+  border-bottom: 1px solid var(--accent);
+}
+
+.confirm-row:last-child { border-bottom: none; }
+
+.confirm-icon {
+  font-size: 1rem;
+  flex-shrink: 0;
+  margin-top: 2px;
+  width: 20px;
+  text-align: center;
+}
+
+.confirm-row-label {
+  display: block;
+  font-size: .6rem;
+  font-weight: 700;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--text-light);
+  margin-bottom: 2px;
+}
+
+.confirm-row-value {
+  display: block;
+  font-size: .88rem;
+  font-weight: 500;
   color: var(--text);
-  line-height: 1.7;
-  margin-bottom: 10px;
-  font-weight: 300;
+}
+
+.confirm-row-value em {
+  font-style: normal;
+  color: var(--primary);
+  font-weight: 600;
 }
 
 .confirm-secondary {
-  font-size: .78rem;
+  font-size: .75rem;
   font-weight: 300;
   color: var(--text-light);
   line-height: 1.6;
-  margin-bottom: 34px;
+  margin-bottom: 28px;
   padding: 0 12px;
   letter-spacing: .02em;
 }
