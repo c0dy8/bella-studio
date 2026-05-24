@@ -1,0 +1,17 @@
+# Entornos virtuales de Python
+backend/.venv/
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Variables de entorno y secretos locales
+backend/.env
+.env
+.env.*
+
+# Logs y temporales
+*.log
+.system_generated/
+scratch/

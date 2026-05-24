@@ -1,16 +1,77 @@
 /* ============================================================
-  DATOS
-============================================================ */
-const SPECIALISTS = [
-  { id: 1, name: 'Valentina', specialty: 'Uñas y acrílicas', schedule: 'Lun–Sáb · 9am–5pm', photo: 'https://i.pravatar.cc/200?img=1' },
-  { id: 2, name: 'Isabella', specialty: 'Corte y coloración', schedule: 'Mar–Sáb · 10am–6pm', photo: 'https://i.pravatar.cc/200?img=5' },
-  { id: 3, name: 'Camila', specialty: 'Cejas y pestañas', schedule: 'Lun–Vie · 9am–4pm', photo: 'https://i.pravatar.cc/200?img=9' },
-  { id: 4, name: 'Daniela', specialty: 'Facial y masajes', schedule: 'Mié–Dom · 11am–7pm', photo: 'https://i.pravatar.cc/200?img=10' },
-];
+   SUPABASE CLIENT CONFIG
+=========================================================== */
+// ⚠️ IMPORTANTE: REEMPLAZA ESTAS VARIABLES CON TUS CREDENCIALES REALES
+const SUPABASE_URL = 'https://irhhoqrukaedcnrvmadn.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlyaGhvcXJ1a2FlZGNucnZtYWRuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk2MjIzNjgsImV4cCI6MjA5NTE5ODM2OH0.PuM1obEGmzKOvE1E5160u9LcmDCLwHsL96oR9AoZrHs';
+
+// Inicializar cliente (la librería fue añadida en el index.html)
+const supabaseClient = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY) : null;
+
+/* ============================================================
+   DATOS (Cargados dinámicamente con respaldo)
+=========================================================== */
+let SPECIALISTS = [];
+let SERVICES = [];
 
 const TIME_SLOTS = ['9:00am', '10:00am', '11:00am', '12:00pm', '2:00pm', '3:00pm', '4:00pm', '5:00pm'];
 
-const SERVICES = ['Manicure', 'Pedicure', 'Uñas acrílicas', 'Corte', 'Coloración', 'Cejas', 'Pestañas', 'Facial'];
+// Datos locales de respaldo si la conexión a Supabase falla
+const MOCK_SPECIALISTS = [
+  { id: 1, name: 'Valentina', specialty: 'Uñas y acrílicas',   schedule: 'Lun–Sáb · 9am–5pm',  photo: 'https://i.pravatar.cc/200?img=1', services: [{ name: 'Manicure' }, { name: 'Pedicure' }, { name: 'Uñas acrílicas' }] },
+  { id: 2, name: 'Isabella',  specialty: 'Corte y coloración', schedule: 'Mar–Sáb · 10am–6pm', photo: 'https://i.pravatar.cc/200?img=5', services: [{ name: 'Corte' }, { name: 'Coloración' }] },
+  { id: 3, name: 'Camila',    specialty: 'Cejas y pestañas',   schedule: 'Lun–Vie · 9am–4pm',  photo: 'https://i.pravatar.cc/200?img=9', services: [{ name: 'Cejas' }, { name: 'Pestañas' }] },
+  { id: 4, name: 'Daniela',   specialty: 'Facial y masajes',   schedule: 'Mié–Dom · 11am–7pm', photo: 'https://i.pravatar.cc/200?img=10', services: [{ name: 'Facial' }] },
+];
+
+const MOCK_SERVICES = ['Manicure','Pedicure','Uñas acrílicas','Corte','Coloración','Cejas','Pestañas','Facial'];
+
+async function initData() {
+  console.log('%c[Bella Studio] Iniciando carga de datos...', 'color: #b86a4a; font-weight: bold;');
+  
+  if (!supabaseClient) {
+    console.warn('⚠️ Supabase no está instanciado. Cargando datos locales de respaldo.');
+    SPECIALISTS = MOCK_SPECIALISTS;
+    SERVICES = MOCK_SERVICES;
+    render();
+    return;
+  }
+  
+  try {
+    // Obtener especialistas con sus servicios asociados usando la relación de base de datos
+    const { data: specData, error: specErr } = await supabaseClient.from('specialists').select('*, services(name)').order('id');
+    if (specErr) {
+      console.error('❌ Error de Supabase al obtener especialistas:', specErr);
+      SPECIALISTS = MOCK_SPECIALISTS;
+    } else if (!specData || specData.length === 0) {
+      console.warn('⚠️ La tabla specialists está vacía en Supabase. Cargando respaldo local.');
+      SPECIALISTS = MOCK_SPECIALISTS;
+    } else {
+      console.log('✅ Especialistas cargados con éxito:', specData);
+      SPECIALISTS = specData;
+    }
+
+    // Obtener servicios
+    const { data: servData, error: servErr } = await supabaseClient.from('services').select('*').order('id');
+    if (servErr) {
+      console.error('❌ Error de Supabase al obtener servicios:', servErr);
+      SERVICES = MOCK_SERVICES;
+    } else if (!servData || servData.length === 0) {
+      console.warn('⚠️ La tabla services está vacía en Supabase. Cargando respaldo local.');
+      SERVICES = MOCK_SERVICES;
+    } else {
+      console.log('✅ Servicios cargados con éxito:', servData);
+      SERVICES = servData.map(s => s.name);
+    }
+  } catch (error) {
+    console.error('💥 Excepción crítica de red al conectar con Supabase:', error);
+    SPECIALISTS = MOCK_SPECIALISTS;
+    SERVICES = MOCK_SERVICES;
+  }
+
+  // Renderizar la UI con los datos cargados (ya sean de Supabase o mocks)
+  render();
+}
 
 const MONTH_NAMES = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
 const DAY_LABELS = ['L', 'M', 'M', 'J', 'V', 'S', 'D'];
@@ -23,11 +84,12 @@ const _now = new Date();
 let state = {
   step: 1,                      // 1 | 2 | 3 | 4 (confirmación)
   specialist: null,                   // objeto de SPECIALISTS
-  date: '',                     // "YYYY-MM-DD"
-  time: '',                     // "HH:MMam/pm"
-  form: {},                     // { name, phone, email, service }
-  calYear: _now.getFullYear(),     // año visible en el calendario
-  calMonth: _now.getMonth(),        // mes visible en el calendario (0-11)
+  date:       '',                     // "YYYY-MM-DD"
+  time:       '',                     // "HH:MMam/pm"
+  form:       { name: '', phone: '', email: '', service: '', payment: '' }, // { name, phone, email, service }
+  calYear:    _now.getFullYear(),     // año visible en el calendario
+  calMonth:   _now.getMonth(),        // mes visible en el calendario (0-11)
+  bookedTimes: [],                    // Lista de horas ocupadas para el especialista y fecha seleccionada
 };
 
 /* ============================================================
@@ -305,12 +367,14 @@ function tplStep2() {
   const s = state.specialist;
   const timeButtons = TIME_SLOTS.map(t => {
     const sel = state.time === t;
+    const isBooked = state.bookedTimes && state.bookedTimes.includes(t);
     return `
       <button
         class="time-btn${sel ? ' selected' : ''}"
         aria-pressed="${sel}"
         aria-label="Hora ${t}"
         onclick="pickTime('${t}')"
+        ${isBooked ? 'disabled' : ''}
       >${t}</button>`;
   }).join('');
 
@@ -361,9 +425,12 @@ function tplStep2() {
   TEMPLATE PASO 3 — Datos y confirmación
 ============================================================ */
 function tplStep3() {
-  const s = state.specialist;
-  const f = state.form;
-  const opts = SERVICES.map(sv =>
+  const s    = state.specialist;
+  const f    = state.form;
+  
+  // Filtrar servicios específicos del especialista seleccionado
+  const specServices = s && s.services ? s.services.map(sv => sv.name) : [];
+  const opts = specServices.map(sv =>
     `<option value="${sv}"${f.service === sv ? ' selected' : ''}>${sv}</option>`
   ).join('');
 
@@ -434,9 +501,9 @@ function tplStep3() {
               </svg>
             </button>
             <div class="cs-dropdown" role="listbox" aria-label="Servicios disponibles">
-              ${SERVICES.map(sv => {
-    const sel = f.service === sv;
-    return `
+              ${specServices.map(sv => {
+                const sel = f.service === sv;
+                return `
                   <div
                     class="cs-option${sel ? ' cs-selected' : ''}"
                     role="option"
@@ -533,7 +600,6 @@ function tplStep3() {
               </svg>
               <span class="pay-label">Transferencia</span>
             </button>
-
           </div>
         </div>
 
@@ -576,7 +642,8 @@ function tplConfirm() {
       </p>
 
       <p class="confirm-secondary">
-        Recibirás un recordatorio en tu WhatsApp<br>y correo electrónico.
+        Método de pago: <strong>${state.form.payment || 'Efectivo'}</strong>.<br>
+        Recibirás un recordatorio en tu WhatsApp y correo electrónico.
       </p>
 
       <button class="btn-outline" onclick="restart()" aria-label="Agendar otra cita desde el inicio">
@@ -592,6 +659,11 @@ function tplConfirm() {
 
 function pickSpecialist(id) {
   state.specialist = SPECIALISTS.find(s => s.id === id);
+  
+  // Limpiar selección de fecha y hora previas al cambiar de especialista
+  state.date = '';
+  state.time = '';
+  state.bookedTimes = [];
 
   document.querySelectorAll('.spec-card').forEach(c => {
     const isSelected = Number(c.dataset.id) === id;
@@ -602,39 +674,130 @@ function pickSpecialist(id) {
   setTimeout(() => goTo(2), 250);
 }
 
-function pickDate(iso) {
+async function pickDate(iso) {
+  // Validaciones lógicas de seguridad
+  const targetDate = isoToDate(iso);
+  const today = todayMidnight();
+  const maxD = maxDate();
+  const isSun = targetDate.getDay() === 0;
+  const isPast = targetDate < today;
+  const isFuture = targetDate > maxD;
+
+  if (isSun || isPast || isFuture) {
+    console.warn("⚠️ Intento de seleccionar fecha inválida bloqueado:", iso);
+    return;
+  }
+
   state.date = iso;
+  state.time = ''; // Resetear hora al cambiar de fecha
+  state.bookedTimes = []; // Limpiar ocupados mientras carga la nueva fecha
 
-  // Actualizar selección visual en el calendario sin re-renderizarlo
-  document.querySelectorAll('.cal-day[data-iso]').forEach(el => {
-    el.classList.remove('cal-selected');
-  });
-  const el = document.querySelector(`.cal-day[data-iso="${iso}"]`);
-  if (el) el.classList.add('cal-selected');
+  if (typeof document !== 'undefined') {
+    // Actualizar selección visual en el calendario sin re-renderizarlo
+    document.querySelectorAll('.cal-day[data-iso]').forEach(el => {
+      el.classList.remove('cal-selected');
+    });
+    const el = document.querySelector(`.cal-day[data-iso="${iso}"]`);
+    if (el) el.classList.add('cal-selected');
 
-  // Actualizar etiqueta de fecha seleccionada
-  const label = document.getElementById('calLabel');
-  if (label) {
-    label.classList.add('cal-label-active');
-    label.innerHTML = `
-      <svg viewBox="0 0 16 16" width="13" height="13" fill="none" style="margin-right:5px;vertical-align:-1px">
-        <circle cx="8" cy="8" r="7" fill="#c9a96e"/>
-        <polyline points="4.5,8 7,10.5 11.5,5.5" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-      </svg>${spanishDate(iso)}`;
+    // Actualizar etiqueta de fecha seleccionada
+    const label = document.getElementById('calLabel');
+    if (label) {
+      label.classList.add('cal-label-active');
+      label.innerHTML = `
+        <svg viewBox="0 0 16 16" width="13" height="13" fill="none" style="margin-right:5px;vertical-align:-1px">
+          <circle cx="8" cy="8" r="7" fill="#c9a96e"/>
+          <polyline points="4.5,8 7,10.5 11.5,5.5" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>${spanishDate(iso)}`;
+    }
   }
 
   refreshNextBtn();
+
+  // Obtener las horas ya agendadas de Supabase de forma asíncrona
+  await fetchBookedTimes(iso);
+}
+
+async function fetchBookedTimes(dateVal) {
+  if (!supabaseClient || !state.specialist) return;
+  
+  try {
+    // Usar la función RPC segura para evadir RLS de forma controlada y proteger la privacidad
+    const { data, error } = await supabaseClient
+      .rpc('get_booked_times', {
+        p_specialist_id: state.specialist.id,
+        p_date: dateVal
+      });
+
+    if (error) {
+      console.error('❌ Error al consultar citas ocupadas (RPC):', error);
+      state.bookedTimes = [];
+    } else {
+      // Mapear los datos garantizando la compatibilidad del formato retornado por PostgreSQL
+      state.bookedTimes = data ? data.map(row => typeof row === 'object' && row !== null ? row.appointment_time : row) : [];
+      console.log('📅 Horas ocupadas para este día:', state.bookedTimes);
+    }
+  } catch (error) {
+    console.error('💥 Excepción al buscar citas ocupadas:', error);
+    state.bookedTimes = [];
+  }
+  
+  // Actualizar solo los botones horarios en pantalla de forma fluida (sin recargar toda la página)
+  renderTimeGrid();
+}
+
+function renderTimeGrid() {
+  const grid = document.querySelector('.time-grid');
+  if (!grid) return;
+  
+  grid.innerHTML = TIME_SLOTS.map(t => {
+    const sel = state.time === t;
+    const isBooked = state.bookedTimes && state.bookedTimes.includes(t);
+    return `
+      <button
+        class="time-btn${sel ? ' selected' : ''}"
+        aria-pressed="${sel}"
+        aria-label="Hora ${t}"
+        onclick="pickTime('${t}')"
+        ${isBooked ? 'disabled' : ''}
+      >${t}</button>`;
+  }).join('');
 }
 
 function pickTime(t) {
+  if (!TIME_SLOTS.includes(t)) {
+    console.warn("⚠️ Intento de seleccionar hora fuera de rango:", t);
+    return;
+  }
+  if (state.bookedTimes && state.bookedTimes.includes(t)) {
+    console.warn("⚠️ Intento de seleccionar hora ya reservada:", t);
+    return;
+  }
+
   state.time = t;
 
-  document.querySelectorAll('.time-btn').forEach(btn => {
-    const sel = btn.textContent.trim() === t;
-    btn.classList.toggle('selected', sel);
-    btn.setAttribute('aria-pressed', sel ? 'true' : 'false');
-  });
+  if (typeof document !== 'undefined') {
+    document.querySelectorAll('.time-btn').forEach(btn => {
+      const sel = btn.textContent.trim() === t;
+      btn.classList.toggle('selected', sel);
+      btn.setAttribute('aria-pressed', sel ? 'true' : 'false');
+    });
+  }
   refreshNextBtn();
+}
+
+function pickPaymentMethod(method) {
+  if (!state.form) state.form = {};
+  state.form.payment_method = method;
+
+  document.querySelectorAll('.pm-card').forEach(card => {
+    const radio = card.querySelector('input');
+    if (radio) {
+      const isSelected = radio.value === method;
+      card.classList.toggle('selected', isSelected);
+      radio.checked = isSelected;
+    }
+  });
 }
 
 function refreshNextBtn() {
@@ -650,6 +813,7 @@ function goTo(step) {
 
 function snapshotForm() {
   const get = id => { const el = document.getElementById(id); return el ? el.value : ''; };
+  const pmRadio = document.querySelector('input[name="paymentMethod"]:checked');
   state.form = {
     name: get('iName'),
     phone: get('iPhone'),
@@ -712,15 +876,23 @@ function pickService(value) {
 }
 
 function filterName(el) {
-  el.value = el.value.replace(/[^A-Za-záéíóúÁÉÍÓÚñÑüÜ\s]/g, '');
+  el.value = el.value.replace(/[^A-Za-záéíóúÁÉÍÓÚñÑüÜ\s]/g, '').replace(/\s+/g, ' ');
 }
 
 function filterPhone(el) {
   el.value = el.value.replace(/\D/g, '');
 }
 
-function submitForm(e) {
-  e.preventDefault();
+async function submitForm(e) {
+  if (e && e.preventDefault) e.preventDefault();
+
+  if (!state.specialist || !state.date || !state.time) {
+    if (typeof alert !== 'undefined') {
+      alert("Por favor selecciona un especialista, fecha y hora antes de continuar.");
+    }
+    return;
+  }
+
   snapshotForm();
 
   // Mensajes de validación en español
@@ -772,39 +944,89 @@ function submitForm(e) {
   btn.innerHTML = '<div class="btn-spinner"></div> Confirmando...';
   btn.disabled = true;
 
-  setTimeout(() => {
-    state.step = 4;
-    render();
-  }, 1500);
+  if (!supabaseClient) {
+    alert("Falta configurar el cliente de Supabase.");
+    btn.innerHTML = 'Confirmar cita';
+    btn.disabled = false;
+    return;
+  }
+
+  // Guardar cita en Supabase
+  const { error } = await supabaseClient.from('appointments').insert([
+    {
+      specialist_id: state.specialist.id,
+      appointment_date: state.date,
+      appointment_time: state.time,
+      customer_name: state.form.name,
+      customer_phone: state.form.phone,
+      customer_email: state.form.email,
+      service_name: state.form.service,
+      payment_method: state.form.payment || 'Efectivo'
+    }
+  ]);
+
+  if (error) {
+    console.error('Error al agendar:', error);
+    alert('Hubo un error al confirmar tu cita. Por favor intenta de nuevo.');
+    btn.innerHTML = 'Confirmar cita';
+    btn.disabled = false;
+    return;
+  }
+
+  state.step = 4;
+  render();
 }
 
 function restart() {
   const now = new Date();
-  state = {
-    step: 1,
-    specialist: null,
-    date: '',
-    time: '',
-    form: {},
-    calYear: now.getFullYear(),
-    calMonth: now.getMonth(),
-  };
+  state.step = 1;
+  state.specialist = null;
+  state.date = '';
+  state.time = '';
+  state.form = { name: '', phone: '', email: '', service: '', payment: '' };
+  state.calYear = now.getFullYear();
+  state.calMonth = now.getMonth();
+  state.bookedTimes = [];
   render();
 }
 
 /* ============================================================
-  CERRAR CUSTOM SELECT AL HACER CLICK FUERA
+  CERRAR CUSTOM SELECT AL HACER CLICK FUERA AND INITIALIZATION
 ============================================================ */
-document.addEventListener('click', function (e) {
-  const sel = document.getElementById('serviceSelect');
-  if (sel && !sel.contains(e.target)) {
-    sel.classList.remove('open');
-    const trigger = sel.querySelector('.cs-trigger');
-    if (trigger) trigger.setAttribute('aria-expanded', 'false');
-  }
-});
+if (typeof window !== 'undefined' && typeof document !== 'undefined') {
+  document.addEventListener('click', function (e) {
+    const sel = document.getElementById('serviceSelect');
+    if (sel && !sel.contains(e.target)) {
+      sel.classList.remove('open');
+      const trigger = sel.querySelector('.cs-trigger');
+      if (trigger) trigger.setAttribute('aria-expanded', 'false');
+    }
+  });
+
+  initData();
+}
 
 /* ============================================================
-  INICIO
+  EXPORTACIONES PARA PRUEBAS UNITARIAS (NODE.JS)
 ============================================================ */
-render();
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = {
+    state,
+    SPECIALISTS,
+    SERVICES,
+    TIME_SLOTS,
+    todayMidnight,
+    maxDate,
+    isoToDate,
+    dateToISO,
+    spanishDate,
+    filterName,
+    filterPhone,
+    pickTime,
+    pickDate,
+    pickPayment,
+    pickService,
+    submitForm,
+    restart
+  };
+}
