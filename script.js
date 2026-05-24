@@ -316,7 +316,13 @@ function tplStep2() {
 
   return `
     <div class="step-view">
-      <button class="btn-back" onclick="goTo(1)" aria-label="Volver a elegir especialista">← Volver</button>
+      <button class="btn-back" onclick="goTo(1)" aria-label="Volver a elegir especialista">
+        <svg viewBox="0 0 20 20" width="14" height="14" fill="none">
+          <polyline points="13,4 7,10 13,16" stroke="currentColor" stroke-width="2.3"
+            stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        Volver
+      </button>
 
       <div class="mini-card">
         <img class="mini-photo" src="${s.photo}" alt="${s.name}">
@@ -341,7 +347,13 @@ function tplStep2() {
         onclick="goTo(3)"
         ${!state.date || !state.time ? 'disabled' : ''}
         aria-label="Ir al paso de confirmación"
-      >Siguiente →</button>
+      >
+        Siguiente
+        <svg class="btn-arrow" viewBox="0 0 20 20" width="18" height="18" fill="none">
+          <line x1="4" y1="10" x2="15" y2="10" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
+          <polyline points="11,5 16,10 11,15" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
     </div>`;
 }
 
@@ -357,7 +369,13 @@ function tplStep3() {
 
   return `
     <div class="step-view">
-      <button class="btn-back" onclick="goTo(2)" aria-label="Volver a elegir fecha y hora">← Volver</button>
+      <button class="btn-back" onclick="goTo(2)" aria-label="Volver a elegir fecha y hora">
+        <svg viewBox="0 0 20 20" width="14" height="14" fill="none">
+          <polyline points="13,4 7,10 13,16" stroke="currentColor" stroke-width="2.3"
+            stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        Volver
+      </button>
 
       <h2 class="sec-title">Confirma tu cita</h2>
       <p class="sec-sub">Revisa los detalles y completa tus datos</p>
@@ -404,6 +422,10 @@ function tplStep3() {
 
         <button type="submit" class="btn-primary" id="btnConfirm" style="margin-top:8px">
           Confirmar cita
+          <svg class="btn-arrow" viewBox="0 0 20 20" width="18" height="18" fill="none">
+            <line x1="4" y1="10" x2="15" y2="10" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
+            <polyline points="11,5 16,10 11,15" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
         </button>
 
       </form>
