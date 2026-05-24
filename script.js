@@ -477,9 +477,15 @@ function pickSpecialist(id) {
     const isSelected = Number(c.dataset.id) === id;
     c.classList.toggle('selected', isSelected);
     c.setAttribute('aria-pressed', isSelected ? 'true' : 'false');
+
+    // Disparar giro 360 solo en la tarjeta seleccionada
+    if (isSelected) {
+      c.classList.add('spinning');
+    }
   });
 
-  setTimeout(() => goTo(2), 250);
+  // Esperar a que termine el giro (580ms) antes de avanzar
+  setTimeout(() => goTo(2), 620);
 }
 
 function pickDate(iso) {

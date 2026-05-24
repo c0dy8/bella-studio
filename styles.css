@@ -52,6 +52,14 @@ body {
   100% { transform: scale(1); }
 }
 
+@keyframes cardSpin {
+  0%   { transform: scale(1)    rotate(0deg);   }
+  25%  { transform: scale(0.88) rotate(90deg);  }
+  50%  { transform: scale(0.82) rotate(180deg); }
+  75%  { transform: scale(0.88) rotate(270deg); }
+  100% { transform: scale(1)    rotate(360deg); }
+}
+
 @keyframes spin {
   to { transform: rotate(360deg); }
 }
@@ -268,6 +276,14 @@ body {
 }
 
 .spec-card.selected::after { opacity: 1; }
+
+.spec-card.spinning {
+  animation: cardSpin .58s cubic-bezier(.4, 0, .2, 1) both;
+  pointer-events: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 4px rgba(184,106,74,.2), var(--sh-primary);
+  z-index: 2;
+}
 
 .spec-photo {
   width: 74px;
