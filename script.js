@@ -12,41 +12,54 @@ const TIME_SLOTS = ['9:00am','10:00am','11:00am','12:00pm','2:00pm','3:00pm','4:
 
 const SERVICES = ['Manicure','Pedicure','Uñas acrílicas','Corte','Coloración','Cejas','Pestañas','Facial'];
 
+const MONTH_NAMES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+const DAY_LABELS  = ['L','M','M','J','V','S','D'];
+
 /* ============================================================
    ESTADO
 ============================================================ */
+const _now = new Date();
+
 let state = {
-  step:       1,    // 1 | 2 | 3 | 4 (confirmación)
-  specialist: null, // objeto de SPECIALISTS
-  date:       '',   // "YYYY-MM-DD"
-  time:       '',   // "HH:MMam/pm"
-  form:       {},   // { name, phone, email, service }
+  step:       1,                      // 1 | 2 | 3 | 4 (confirmación)
+  specialist: null,                   // objeto de SPECIALISTS
+  date:       '',                     // "YYYY-MM-DD"
+  time:       '',                     // "HH:MMam/pm"
+  form:       {},                     // { name, phone, email, service }
+  calYear:    _now.getFullYear(),     // año visible en el calendario
+  calMonth:   _now.getMonth(),        // mes visible en el calendario (0-11)
 };
 
 /* ============================================================
    UTILIDADES DE FECHA
 ============================================================ */
-function todayISO() {
+function todayMidnight() {
   const d = new Date();
-  return d.toISOString().split('T')[0];
+  d.setHours(0, 0, 0, 0);
+  return d;
 }
 
-function maxISO() {
-  const d = new Date();
+function maxDate() {
+  const d = todayMidnight();
   d.setDate(d.getDate() + 30);
-  return d.toISOString().split('T')[0];
+  return d;
 }
 
-function isSunday(iso) {
-  if (!iso) return false;
+function isoToDate(iso) {
   const [y, m, d] = iso.split('-').map(Number);
-  return new Date(y, m - 1, d).getDay() === 0;
+  return new Date(y, m - 1, d);
+}
+
+function dateToISO(date) {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  const d = String(date.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
 }
 
 function spanishDate(iso) {
   if (!iso) return '';
-  const [y, m, d] = iso.split('-').map(Number);
-  const date   = new Date(y, m - 1, d);
+  const date   = isoToDate(iso);
   const DAYS   = ['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
   const MONTHS = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
   return `${DAYS[date.getDay()]}, ${date.getDate()} de ${MONTHS[date.getMonth()]}`;
@@ -90,12 +103,11 @@ function updateProgress(step) {
 }
 
 /* ============================================================
-   RENDERIZADO
+   RENDERIZADO PRINCIPAL
 ============================================================ */
 function render() {
   const main = document.getElementById('main');
 
-  // Salida suave
   main.style.transition = 'opacity .18s ease, transform .18s ease';
   main.style.opacity    = '0';
   main.style.transform  = 'translateY(-8px)';
@@ -110,7 +122,6 @@ function render() {
     }
     main.innerHTML = html;
 
-    // Entrada suave
     main.style.transition = '';
     main.style.opacity    = '1';
     main.style.transform  = 'translateY(0)';
@@ -153,6 +164,141 @@ function tplStep1() {
 }
 
 /* ============================================================
+   CALENDARIO PERSONALIZADO
+============================================================ */
+function tplCalendar() {
+  const today  = todayMidnight();
+  const maxD   = maxDate();
+  const y      = state.calYear;
+  const m      = state.calMonth;
+
+  // Offset lunes-primero: Dom=6, Lun=0, Mar=1, ...
+  const firstDow = new Date(y, m, 1).getDay();
+  const offset   = firstDow === 0 ? 6 : firstDow - 1;
+  const totalDays = new Date(y, m + 1, 0).getDate();
+
+  // Controles de navegación
+  const prevLast  = new Date(y, m, 0);   // último día del mes anterior
+  prevLast.setHours(0, 0, 0, 0);
+  const nextFirst = new Date(y, m + 1, 1);
+  nextFirst.setHours(0, 0, 0, 0);
+  const canPrev = prevLast >= today;
+  const canNext = nextFirst <= maxD;
+
+  // Celdas vacías antes del primer día
+  let cells = '';
+  for (let i = 0; i < offset; i++) {
+    cells += `<div class="cal-day cal-empty" aria-hidden="true"></div>`;
+  }
+
+  // Días del mes
+  for (let d = 1; d <= totalDays; d++) {
+    const date = new Date(y, m, d);
+    date.setHours(0, 0, 0, 0);
+    const iso        = dateToISO(date);
+    const isSun      = date.getDay() === 0;
+    const isPast     = date < today;
+    const isFuture   = date > maxD;
+    const isDisabled = isSun || isPast || isFuture;
+    const isToday    = date.getTime() === today.getTime();
+    const isSelected = state.date === iso;
+
+    let cls = 'cal-day';
+    if (isDisabled) cls += ' cal-disabled';
+    if (isSun)      cls += ' cal-sunday';
+    if (isToday && !isDisabled) cls += ' cal-today';
+    if (isSelected) cls += ' cal-selected';
+
+    const interactive = isDisabled ? `aria-disabled="true"` : `
+      tabindex="0"
+      role="button"
+      data-iso="${iso}"
+      aria-label="${d} de ${MONTH_NAMES[m]}${isToday ? ' (hoy)' : ''}"
+      onclick="pickDate('${iso}')"
+      onkeydown="if(event.key==='Enter'||event.key===' ')pickDate('${iso}')"
+    `;
+
+    cells += `<div class="${cls}" ${interactive}>${d}</div>`;
+  }
+
+  // Etiqueta de fecha seleccionada
+  const labelText = state.date
+    ? `<svg viewBox="0 0 16 16" width="13" height="13" fill="none" style="margin-right:5px;vertical-align:-1px">
+        <circle cx="8" cy="8" r="7" fill="#b86a4a"/>
+        <polyline points="4.5,8 7,10.5 11.5,5.5" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+       </svg>${spanishDate(state.date)}`
+    : 'Selecciona un día disponible';
+
+  return `
+    <div class="calendar" role="group" aria-label="Selector de fecha">
+
+      <!-- Encabezado: mes + navegación -->
+      <div class="cal-header">
+        <button
+          class="cal-nav"
+          onclick="calPrev()"
+          ${!canPrev ? 'disabled' : ''}
+          aria-label="Mes anterior"
+        >
+          <svg viewBox="0 0 20 20" width="16" height="16" fill="none">
+            <polyline points="13,4 7,10 13,16" stroke="currentColor" stroke-width="2.2"
+              stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+
+        <div class="cal-title-wrap">
+          <span class="cal-title">${MONTH_NAMES[m]}</span>
+          <span class="cal-year">${y}</span>
+        </div>
+
+        <button
+          class="cal-nav"
+          onclick="calNext()"
+          ${!canNext ? 'disabled' : ''}
+          aria-label="Mes siguiente"
+        >
+          <svg viewBox="0 0 20 20" width="16" height="16" fill="none">
+            <polyline points="7,4 13,10 7,16" stroke="currentColor" stroke-width="2.2"
+              stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Grilla de días -->
+      <div class="cal-grid">
+        ${DAY_LABELS.map((n, i) =>
+          `<div class="cal-weekday${i === 6 ? ' cal-weekday-sun' : ''}">${n}</div>`
+        ).join('')}
+        ${cells}
+      </div>
+
+      <!-- Leyenda / fecha seleccionada -->
+      <div class="cal-label ${state.date ? 'cal-label-active' : ''}" id="calLabel">
+        ${labelText}
+      </div>
+
+    </div>`;
+}
+
+/* Actualizar solo el contenedor del calendario sin re-renderizar el paso */
+function renderCalendar() {
+  const container = document.getElementById('calContainer');
+  if (container) container.innerHTML = tplCalendar();
+}
+
+function calPrev() {
+  if (state.calMonth === 0) { state.calMonth = 11; state.calYear--; }
+  else { state.calMonth--; }
+  renderCalendar();
+}
+
+function calNext() {
+  if (state.calMonth === 11) { state.calMonth = 0; state.calYear++; }
+  else { state.calMonth++; }
+  renderCalendar();
+}
+
+/* ============================================================
    TEMPLATE PASO 2 — Fecha y hora
 ============================================================ */
 function tplStep2() {
@@ -181,25 +327,12 @@ function tplStep2() {
       </div>
 
       <h2 class="sec-title">Fecha y hora</h2>
-      <p class="sec-sub">Disponibilidad en los próximos 30 días</p>
+      <p class="sec-sub">Elige tu día y bloque horario preferido</p>
 
-      <label class="form-label" for="dateInput">Fecha</label>
-      <input
-        class="date-input"
-        type="date"
-        id="dateInput"
-        min="${todayISO()}"
-        max="${maxISO()}"
-        value="${state.date}"
-        aria-label="Selecciona la fecha de tu cita"
-        onchange="pickDate(this.value)"
-      >
+      <label class="form-label" style="margin-bottom:12px">Fecha</label>
+      <div id="calContainer">${tplCalendar()}</div>
 
-      <div class="alert-box" id="sundayAlert" role="alert" aria-live="assertive">
-        ⚠️ Los domingos no tenemos atención. Por favor elige otro día.
-      </div>
-
-      <label class="form-label">Hora</label>
+      <label class="form-label" style="margin-bottom:10px; margin-top:4px">Hora</label>
       <div class="time-grid">${timeButtons}</div>
 
       <button
@@ -318,38 +451,42 @@ function tplConfirm() {
 function pickSpecialist(id) {
   state.specialist = SPECIALISTS.find(s => s.id === id);
 
-  // Resaltar tarjeta sin re-renderizar todo el paso
   document.querySelectorAll('.spec-card').forEach(c => {
     const isSelected = Number(c.dataset.id) === id;
     c.classList.toggle('selected', isSelected);
     c.setAttribute('aria-pressed', isSelected ? 'true' : 'false');
   });
 
-  // Avanzar al paso 2 tras 250ms
   setTimeout(() => goTo(2), 250);
 }
 
-function pickDate(val) {
-  const alertEl = document.getElementById('sundayAlert');
-  const input   = document.getElementById('dateInput');
+function pickDate(iso) {
+  state.date = iso;
 
-  if (isSunday(val)) {
-    alertEl.classList.add('show');
-    state.date = '';
-    // Resetear el valor del input después de que el navegador lo asigne
-    setTimeout(() => { input.value = ''; }, 0);
-    setTimeout(() => alertEl.classList.remove('show'), 3800);
-  } else {
-    alertEl.classList.remove('show');
-    state.date = val;
+  // Actualizar selección visual en el calendario sin re-renderizarlo
+  document.querySelectorAll('.cal-day[data-iso]').forEach(el => {
+    el.classList.remove('cal-selected');
+  });
+  const el = document.querySelector(`.cal-day[data-iso="${iso}"]`);
+  if (el) el.classList.add('cal-selected');
+
+  // Actualizar etiqueta de fecha seleccionada
+  const label = document.getElementById('calLabel');
+  if (label) {
+    label.classList.add('cal-label-active');
+    label.innerHTML = `
+      <svg viewBox="0 0 16 16" width="13" height="13" fill="none" style="margin-right:5px;vertical-align:-1px">
+        <circle cx="8" cy="8" r="7" fill="#b86a4a"/>
+        <polyline points="4.5,8 7,10.5 11.5,5.5" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>${spanishDate(iso)}`;
   }
+
   refreshNextBtn();
 }
 
 function pickTime(t) {
   state.time = t;
 
-  // Actualizar botones sin re-renderizar todo el paso
   document.querySelectorAll('.time-btn').forEach(btn => {
     const sel = btn.textContent.trim() === t;
     btn.classList.toggle('selected', sel);
@@ -364,7 +501,6 @@ function refreshNextBtn() {
 }
 
 function goTo(step) {
-  // Preservar datos del formulario si venimos del paso 3
   if (state.step === 3) snapshotForm();
   state.step = step;
   render();
@@ -390,12 +526,10 @@ function submitForm(e) {
     return;
   }
 
-  // Estado de carga en el botón
   const btn = document.getElementById('btnConfirm');
   btn.innerHTML = '<div class="btn-spinner"></div> Confirmando...';
   btn.disabled = true;
 
-  // Simular envío con 1.5 segundos de espera
   setTimeout(() => {
     state.step = 4;
     render();
@@ -403,7 +537,16 @@ function submitForm(e) {
 }
 
 function restart() {
-  state = { step: 1, specialist: null, date: '', time: '', form: {} };
+  const now = new Date();
+  state = {
+    step:      1,
+    specialist: null,
+    date:       '',
+    time:       '',
+    form:       {},
+    calYear:    now.getFullYear(),
+    calMonth:   now.getMonth(),
+  };
   render();
 }
 

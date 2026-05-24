@@ -335,49 +335,181 @@ body {
   margin-bottom: 8px;
 }
 
-.date-input {
-  width: 100%;
-  padding: 14px 16px;
-  font-family: 'Lato', sans-serif;
-  font-size: .98rem;
-  font-weight: 400;
-  color: var(--text);
+/* ===== CALENDARIO PERSONALIZADO ===== */
+.calendar {
   background: var(--white);
-  border: 2px solid var(--accent);
-  border-radius: 14px;
-  outline: none;
-  cursor: pointer;
-  transition: border-color .2s, box-shadow .2s;
-  margin-bottom: 20px;
-  -webkit-appearance: none;
-  appearance: none;
+  border-radius: 18px;
+  padding: 18px 16px 14px;
+  box-shadow: var(--sh-card);
+  margin-bottom: 22px;
+  border: 1.5px solid var(--accent);
 }
 
-.date-input:focus {
+/* Encabezado mes + flechas */
+.cal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 18px;
+}
+
+.cal-nav {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  border: 1.5px solid var(--accent);
+  background: none;
+  color: var(--text-light);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: border-color .2s, color .2s, background .2s;
+  flex-shrink: 0;
+}
+
+.cal-nav:hover:not(:disabled) {
   border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(184,106,74,.13);
+  color: var(--primary);
+  background: rgba(184,106,74,.07);
 }
 
-.date-input::-webkit-calendar-picker-indicator {
-  opacity: .45;
+.cal-nav:disabled {
+  opacity: .28;
+  cursor: not-allowed;
+}
+
+.cal-title-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  line-height: 1.1;
+}
+
+.cal-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--text);
+  text-transform: capitalize;
+}
+
+.cal-year {
+  font-size: .72rem;
+  font-weight: 700;
+  color: var(--text-light);
+  letter-spacing: .06em;
+}
+
+/* Grilla 7 columnas */
+.cal-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 3px;
+}
+
+/* Etiquetas de días de la semana */
+.cal-weekday {
+  text-align: center;
+  font-size: .62rem;
+  font-weight: 700;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  color: var(--text-light);
+  padding: 2px 0 8px;
+}
+
+.cal-weekday-sun {
+  color: #c9a5a0;
+}
+
+/* Celda de día */
+.cal-day {
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  font-size: .86rem;
+  font-weight: 700;
   cursor: pointer;
+  color: var(--text);
+  transition: background .15s, color .15s, transform .15s, box-shadow .15s;
+  -webkit-tap-highlight-color: transparent;
+  position: relative;
 }
 
-/* Alerta domingo */
-.alert-box {
-  display: none;
+.cal-day:hover:not(.cal-disabled):not(.cal-selected) {
   background: rgba(184,106,74,.1);
-  border: 1.5px solid var(--primary);
-  border-radius: 12px;
-  padding: 11px 15px;
-  font-size: .84rem;
+  color: var(--primary);
+  transform: scale(1.1);
+}
+
+/* Celda vacía (relleno de inicio de mes) */
+.cal-empty {
+  cursor: default;
+  pointer-events: none;
+}
+
+/* Días deshabilitados (pasados / fuera de rango) */
+.cal-disabled {
+  color: #d8ccc6;
+  cursor: not-allowed;
+  font-weight: 400;
+}
+
+/* Domingo deshabilitado con tinte rosado */
+.cal-sunday {
+  color: #d8b8b4;
+}
+
+.cal-sunday::after {
+  content: '';
+  position: absolute;
+  bottom: 3px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: #d8b8b4;
+}
+
+/* Hoy */
+.cal-today {
+  border: 2px solid var(--primary);
+  color: var(--primary);
+}
+
+/* Día seleccionado */
+.cal-selected {
+  background: var(--primary) !important;
+  color: var(--white) !important;
+  box-shadow: 0 4px 14px rgba(184,106,74,.38);
+  transform: scale(1.08);
+}
+
+.cal-selected.cal-today {
+  border-color: var(--primary-dk);
+}
+
+/* Etiqueta de fecha seleccionada */
+.cal-label {
+  margin-top: 14px;
+  padding-top: 13px;
+  border-top: 1.5px dashed var(--accent);
+  font-size: .8rem;
+  font-weight: 400;
+  color: #b5a099;
+  text-align: center;
+  min-height: 22px;
+  transition: color .2s;
+}
+
+.cal-label-active {
   font-weight: 700;
   color: var(--primary);
-  margin-bottom: 18px;
-  animation: fadeSlideIn .3s ease-out;
 }
-
-.alert-box.show { display: block; }
 
 /* Grid de horas */
 .time-grid {
