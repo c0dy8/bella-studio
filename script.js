@@ -69,7 +69,7 @@ function spanishDate(iso) {
    BARRA DE PROGRESO
 ============================================================ */
 const CHECK_SVG = `<svg viewBox="0 0 20 20" width="15" height="15" fill="none">
-  <polyline points="4,10 8.5,15 16,6" stroke="#b86a4a" stroke-width="2.8"
+  <polyline points="4,10 8.5,15 16,6" stroke="#c9a96e" stroke-width="2.8"
     stroke-linecap="round" stroke-linejoin="round"/>
 </svg>`;
 
@@ -224,7 +224,7 @@ function tplCalendar() {
   // Etiqueta de fecha seleccionada
   const labelText = state.date
     ? `<svg viewBox="0 0 16 16" width="13" height="13" fill="none" style="margin-right:5px;vertical-align:-1px">
-        <circle cx="8" cy="8" r="7" fill="#b86a4a"/>
+        <circle cx="8" cy="8" r="7" fill="#c9a96e"/>
         <polyline points="4.5,8 7,10.5 11.5,5.5" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
        </svg>${spanishDate(state.date)}`
     : 'Selecciona un día disponible';
@@ -509,15 +509,9 @@ function pickSpecialist(id) {
     const isSelected = Number(c.dataset.id) === id;
     c.classList.toggle('selected', isSelected);
     c.setAttribute('aria-pressed', isSelected ? 'true' : 'false');
-
-    // Disparar giro 360 solo en la tarjeta seleccionada
-    if (isSelected) {
-      c.classList.add('spinning');
-    }
   });
 
-  // Esperar a que termine el giro (580ms) antes de avanzar
-  setTimeout(() => goTo(2), 620);
+  setTimeout(() => goTo(2), 250);
 }
 
 function pickDate(iso) {
@@ -536,7 +530,7 @@ function pickDate(iso) {
     label.classList.add('cal-label-active');
     label.innerHTML = `
       <svg viewBox="0 0 16 16" width="13" height="13" fill="none" style="margin-right:5px;vertical-align:-1px">
-        <circle cx="8" cy="8" r="7" fill="#b86a4a"/>
+        <circle cx="8" cy="8" r="7" fill="#c9a96e"/>
         <polyline points="4.5,8 7,10.5 11.5,5.5" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
       </svg>${spanishDate(iso)}`;
   }
