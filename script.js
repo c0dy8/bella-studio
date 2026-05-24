@@ -413,11 +413,43 @@ function tplStep3() {
         </div>
 
         <div class="form-group">
-          <label class="form-label" for="iService">Servicio deseado</label>
-          <select class="form-select" id="iService" name="service" required>
-            <option value="" disabled${!f.service?' selected':''}>Selecciona un servicio</option>
-            ${opts}
-          </select>
+          <label class="form-label" for="cs-trigger">Servicio deseado</label>
+          <div class="custom-select" id="serviceSelect">
+            <button
+              class="cs-trigger"
+              id="cs-trigger"
+              type="button"
+              aria-haspopup="listbox"
+              aria-expanded="false"
+              onclick="toggleServiceSelect()"
+            >
+              <span class="cs-value${f.service ? '' : ' cs-placeholder'}" id="csLabel">
+                ${f.service || 'Selecciona un servicio'}
+              </span>
+              <svg class="cs-chevron" viewBox="0 0 20 20" width="16" height="16" fill="none">
+                <polyline points="4,7 10,13 16,7" stroke="currentColor" stroke-width="2.2"
+                  stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </button>
+            <div class="cs-dropdown" role="listbox" aria-label="Servicios disponibles">
+              ${SERVICES.map(sv => {
+                const sel = f.service === sv;
+                return `
+                  <div
+                    class="cs-option${sel ? ' cs-selected' : ''}"
+                    role="option"
+                    aria-selected="${sel}"
+                    onclick="pickService('${sv}')"
+                  >
+                    <span>${sv}</span>
+                    ${sel ? `<svg viewBox="0 0 16 16" width="15" height="15" fill="none">
+                      <polyline points="3,8 6.5,11.5 13,5" stroke="#b86a4a" stroke-width="2.2"
+                        stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>` : ''}
+                  </div>`;
+              }).join('')}
+            </div>
+          </div>
         </div>
 
         <button type="submit" class="btn-primary" id="btnConfirm" style="margin-top:8px">
@@ -540,8 +572,51 @@ function snapshotForm() {
     name:    get('iName'),
     phone:   get('iPhone'),
     email:   get('iEmail'),
-    service: get('iService'),
+    service: state.form.service || '', // viene de pickService(), no del DOM
   };
+}
+
+function toggleServiceSelect() {
+  const sel = document.getElementById('serviceSelect');
+  if (!sel) return;
+  const isOpen = sel.classList.toggle('open');
+  sel.querySelector('.cs-trigger').setAttribute('aria-expanded', isOpen);
+}
+
+function pickService(value) {
+  state.form.service = value;
+
+  // Actualizar etiqueta del trigger
+  const label = document.getElementById('csLabel');
+  if (label) {
+    label.textContent = value;
+    label.classList.remove('cs-placeholder');
+  }
+
+  // Actualizar opciones: resaltar la elegida
+  document.querySelectorAll('.cs-option').forEach(opt => {
+    const isSel = opt.querySelector('span').textContent.trim() === value;
+    opt.classList.toggle('cs-selected', isSel);
+    opt.setAttribute('aria-selected', isSel);
+    // Añadir o quitar el checkmark
+    const existing = opt.querySelector('svg');
+    if (isSel && !existing) {
+      opt.insertAdjacentHTML('beforeend', `
+        <svg viewBox="0 0 16 16" width="15" height="15" fill="none">
+          <polyline points="3,8 6.5,11.5 13,5" stroke="#b86a4a" stroke-width="2.2"
+            stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>`);
+    } else if (!isSel && existing) {
+      existing.remove();
+    }
+  });
+
+  // Cerrar dropdown
+  const sel = document.getElementById('serviceSelect');
+  if (sel) {
+    sel.classList.remove('open', 'cs-error');
+    sel.querySelector('.cs-trigger').setAttribute('aria-expanded', 'false');
+  }
 }
 
 function submitForm(e) {
@@ -551,6 +626,17 @@ function submitForm(e) {
   const form = document.getElementById('bookingForm');
   if (!form.checkValidity()) {
     form.reportValidity();
+    return;
+  }
+
+  // Validar custom select manualmente (no participa en checkValidity)
+  if (!state.form.service) {
+    const sel = document.getElementById('serviceSelect');
+    if (sel) {
+      sel.classList.add('cs-error');
+      sel.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      setTimeout(() => sel.classList.remove('cs-error'), 2000);
+    }
     return;
   }
 
@@ -577,6 +663,18 @@ function restart() {
   };
   render();
 }
+
+/* ============================================================
+   CERRAR CUSTOM SELECT AL HACER CLICK FUERA
+============================================================ */
+document.addEventListener('click', function(e) {
+  const sel = document.getElementById('serviceSelect');
+  if (sel && !sel.contains(e.target)) {
+    sel.classList.remove('open');
+    const trigger = sel.querySelector('.cs-trigger');
+    if (trigger) trigger.setAttribute('aria-expanded', 'false');
+  }
+});
 
 /* ============================================================
    INICIO
