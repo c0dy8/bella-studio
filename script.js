@@ -395,14 +395,16 @@ function tplStep3() {
           <label class="form-label" for="iName">Nombre completo</label>
           <input class="form-input" type="text" id="iName" name="name"
             placeholder="Ej: María García" value="${f.name||''}"
-            required autocomplete="name">
+            required autocomplete="name"
+            oninput="filterName(this)">
         </div>
 
         <div class="form-group">
           <label class="form-label" for="iPhone">Teléfono</label>
           <input class="form-input" type="tel" id="iPhone" name="phone"
             placeholder="Ej: 300 123 4567" value="${f.phone||''}"
-            required autocomplete="tel">
+            required autocomplete="tel"
+            oninput="filterPhone(this)">
         </div>
 
         <div class="form-group">
@@ -699,9 +701,34 @@ function pickService(value) {
   }
 }
 
+function filterName(el) {
+  el.value = el.value.replace(/[^A-Za-záéíóúÁÉÍÓÚñÑüÜ\s]/g, '');
+}
+
+function filterPhone(el) {
+  el.value = el.value.replace(/\D/g, '');
+}
+
 function submitForm(e) {
   e.preventDefault();
   snapshotForm();
+
+  // Mensajes de validación en español
+  const nameEl  = document.getElementById('iName');
+  const phoneEl = document.getElementById('iPhone');
+  const emailEl = document.getElementById('iEmail');
+
+  if (nameEl) nameEl.setCustomValidity(
+    !nameEl.value.trim()                                   ? 'Por favor ingresa tu nombre completo' :
+    /[^A-Za-záéíóúÁÉÍÓÚñÑüÜ\s]/.test(nameEl.value)        ? 'El nombre solo puede contener letras'  : ''
+  );
+  if (phoneEl) phoneEl.setCustomValidity(
+    !phoneEl.value        ? 'Por favor ingresa tu número de teléfono' :
+    /\D/.test(phoneEl.value) ? 'El teléfono solo puede contener números' : ''
+  );
+  if (emailEl) emailEl.setCustomValidity(
+    !emailEl.value ? 'Por favor ingresa tu correo electrónico' : ''
+  );
 
   const form = document.getElementById('bookingForm');
   if (!form.checkValidity()) {
