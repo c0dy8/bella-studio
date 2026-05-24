@@ -295,9 +295,15 @@ body {
 }
 
 .spec-schedule {
-  font-size: .67rem;
+  font-size: .74rem;
   color: var(--text-light);
-  font-weight: 300;
+  font-weight: 700;
+  letter-spacing: .01em;
+  background: var(--bg-nude);
+  display: inline-block;
+  padding: 3px 8px;
+  border-radius: 20px;
+  margin-top: 2px;
 }
 
 /* ===== PASO 2 · FECHA Y HORA ===== */
