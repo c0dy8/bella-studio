@@ -502,20 +502,22 @@ function tplStep3() {
               class="pay-btn${f.payment === 'Transferencia' ? ' pay-selected' : ''}"
               data-method="Transferencia"
               onclick="pickPayment('Transferencia')">
-              <svg class="pay-icon" viewBox="0 0 32 28" fill="none">
-                <!-- Edificio banco -->
-                <polygon points="16,1 28,7 4,7" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
-                <rect x="3" y="7" width="26" height="2.5" rx="0" stroke="currentColor" stroke-width="1.4"/>
-                <rect x="6"  y="10" width="3" height="10" stroke="currentColor" stroke-width="1.4"/>
-                <rect x="11" y="10" width="3" height="10" stroke="currentColor" stroke-width="1.4"/>
-                <rect x="18" y="10" width="3" height="10" stroke="currentColor" stroke-width="1.4"/>
-                <rect x="23" y="10" width="3" height="10" stroke="currentColor" stroke-width="1.4"/>
-                <rect x="3" y="20" width="26" height="2.5" rx="0" stroke="currentColor" stroke-width="1.4"/>
-                <!-- Flechas transferencia -->
-                <polyline points="4,25 9,23 9,27"  stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                <line x1="9"  y1="25" x2="15" y2="25" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-                <polyline points="28,25 23,23 23,27" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                <line x1="23" y1="25" x2="17" y2="25" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+              <svg class="pay-icon" viewBox="0 0 64 60" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                <!-- Teléfono -->
+                <rect x="2" y="1" width="30" height="58" rx="7" stroke-width="2.4"/>
+                <!-- Notch superior -->
+                <rect x="11" y="5" width="12" height="3" rx="1.5" stroke-width="2"/>
+                <!-- Barra inferior -->
+                <rect x="13" y="52" width="8" height="3" rx="1.5" stroke-width="2"/>
+                <!-- Círculo dólar -->
+                <circle cx="17" cy="30" r="11" stroke-width="2.3"/>
+                <!-- Signo $ -->
+                <line x1="17" y1="22" x2="17" y2="38" stroke-width="2"/>
+                <path d="M21 25.5 Q21 23 17 23 Q13 23 13 26 Q13 29 17 29.5 Q21 30 21 33 Q21 36 17 36 Q13 36 13 33.5" stroke-width="2"/>
+                <!-- Flecha derecha → (outline) -->
+                <path d="M33 21 L49 21 L49 18 L60 27 L49 36 L49 33 L33 33 Z" stroke-width="2.3" fill="white"/>
+                <!-- Flecha izquierda ← (outline) -->
+                <path d="M60 39 L44 39 L44 36 L33 45 L44 54 L44 51 L60 51 Z" stroke-width="2.3" fill="white"/>
               </svg>
               <span class="pay-label">Transferencia</span>
             </button>
