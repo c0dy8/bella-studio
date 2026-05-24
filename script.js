@@ -1,37 +1,37 @@
 /* ============================================================
-   DATOS
+  DATOS
 ============================================================ */
 const SPECIALISTS = [
-  { id: 1, name: 'Valentina', specialty: 'Uñas y acrílicas',   schedule: 'Lun–Sáb · 9am–5pm',  photo: 'https://i.pravatar.cc/200?img=1'  },
-  { id: 2, name: 'Isabella',  specialty: 'Corte y coloración', schedule: 'Mar–Sáb · 10am–6pm', photo: 'https://i.pravatar.cc/200?img=5'  },
-  { id: 3, name: 'Camila',    specialty: 'Cejas y pestañas',   schedule: 'Lun–Vie · 9am–4pm',  photo: 'https://i.pravatar.cc/200?img=9'  },
-  { id: 4, name: 'Daniela',   specialty: 'Facial y masajes',   schedule: 'Mié–Dom · 11am–7pm', photo: 'https://i.pravatar.cc/200?img=10' },
+  { id: 1, name: 'Valentina', specialty: 'Uñas y acrílicas', schedule: 'Lun–Sáb · 9am–5pm', photo: 'https://i.pravatar.cc/200?img=1' },
+  { id: 2, name: 'Isabella', specialty: 'Corte y coloración', schedule: 'Mar–Sáb · 10am–6pm', photo: 'https://i.pravatar.cc/200?img=5' },
+  { id: 3, name: 'Camila', specialty: 'Cejas y pestañas', schedule: 'Lun–Vie · 9am–4pm', photo: 'https://i.pravatar.cc/200?img=9' },
+  { id: 4, name: 'Daniela', specialty: 'Facial y masajes', schedule: 'Mié–Dom · 11am–7pm', photo: 'https://i.pravatar.cc/200?img=10' },
 ];
 
-const TIME_SLOTS = ['9:00am','10:00am','11:00am','12:00pm','2:00pm','3:00pm','4:00pm','5:00pm'];
+const TIME_SLOTS = ['9:00am', '10:00am', '11:00am', '12:00pm', '2:00pm', '3:00pm', '4:00pm', '5:00pm'];
 
-const SERVICES = ['Manicure','Pedicure','Uñas acrílicas','Corte','Coloración','Cejas','Pestañas','Facial'];
+const SERVICES = ['Manicure', 'Pedicure', 'Uñas acrílicas', 'Corte', 'Coloración', 'Cejas', 'Pestañas', 'Facial'];
 
-const MONTH_NAMES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
-const DAY_LABELS  = ['L','M','M','J','V','S','D'];
+const MONTH_NAMES = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+const DAY_LABELS = ['L', 'M', 'M', 'J', 'V', 'S', 'D'];
 
 /* ============================================================
-   ESTADO
+  ESTADO
 ============================================================ */
 const _now = new Date();
 
 let state = {
-  step:       1,                      // 1 | 2 | 3 | 4 (confirmación)
+  step: 1,                      // 1 | 2 | 3 | 4 (confirmación)
   specialist: null,                   // objeto de SPECIALISTS
-  date:       '',                     // "YYYY-MM-DD"
-  time:       '',                     // "HH:MMam/pm"
-  form:       {},                     // { name, phone, email, service }
-  calYear:    _now.getFullYear(),     // año visible en el calendario
-  calMonth:   _now.getMonth(),        // mes visible en el calendario (0-11)
+  date: '',                     // "YYYY-MM-DD"
+  time: '',                     // "HH:MMam/pm"
+  form: {},                     // { name, phone, email, service }
+  calYear: _now.getFullYear(),     // año visible en el calendario
+  calMonth: _now.getMonth(),        // mes visible en el calendario (0-11)
 };
 
 /* ============================================================
-   UTILIDADES DE FECHA
+  UTILIDADES DE FECHA
 ============================================================ */
 function todayMidnight() {
   const d = new Date();
@@ -59,14 +59,14 @@ function dateToISO(date) {
 
 function spanishDate(iso) {
   if (!iso) return '';
-  const date   = isoToDate(iso);
-  const DAYS   = ['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
-  const MONTHS = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+  const date = isoToDate(iso);
+  const DAYS = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'];
+  const MONTHS = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
   return `${DAYS[date.getDay()]}, ${date.getDate()} de ${MONTHS[date.getMonth()]}`;
 }
 
 /* ============================================================
-   BARRA DE PROGRESO
+  BARRA DE PROGRESO
 ============================================================ */
 const CHECK_SVG = `<svg viewBox="0 0 20 20" width="15" height="15" fill="none">
   <polyline points="4,10 8.5,15 16,6" stroke="#c9a96e" stroke-width="2.8"
@@ -79,7 +79,7 @@ function updateProgress(step) {
 
   [1, 2, 3].forEach(i => {
     const circle = document.getElementById('c' + i);
-    const label  = document.getElementById('l' + i);
+    const label = document.getElementById('l' + i);
     circle.classList.remove('active', 'done');
     label.classList.remove('active');
 
@@ -103,28 +103,28 @@ function updateProgress(step) {
 }
 
 /* ============================================================
-   RENDERIZADO PRINCIPAL
+  RENDERIZADO PRINCIPAL
 ============================================================ */
 function render() {
   const main = document.getElementById('main');
 
   main.style.transition = 'opacity .18s ease, transform .18s ease';
-  main.style.opacity    = '0';
-  main.style.transform  = 'translateY(-8px)';
+  main.style.opacity = '0';
+  main.style.transform = 'translateY(-8px)';
 
   setTimeout(() => {
     let html = '';
     switch (state.step) {
-      case 1: html = tplStep1();   break;
-      case 2: html = tplStep2();   break;
-      case 3: html = tplStep3();   break;
+      case 1: html = tplStep1(); break;
+      case 2: html = tplStep2(); break;
+      case 3: html = tplStep3(); break;
       case 4: html = tplConfirm(); break;
     }
     main.innerHTML = html;
 
     main.style.transition = '';
-    main.style.opacity    = '1';
-    main.style.transform  = 'translateY(0)';
+    main.style.opacity = '1';
+    main.style.transform = 'translateY(0)';
 
     updateProgress(state.step);
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -132,7 +132,7 @@ function render() {
 }
 
 /* ============================================================
-   TEMPLATE PASO 1 — Elegir especialista
+  TEMPLATE PASO 1 — Elegir especialista
 ============================================================ */
 function tplStep1() {
   const cards = SPECIALISTS.map(s => {
@@ -164,21 +164,21 @@ function tplStep1() {
 }
 
 /* ============================================================
-   CALENDARIO PERSONALIZADO
+  CALENDARIO PERSONALIZADO
 ============================================================ */
 function tplCalendar() {
-  const today  = todayMidnight();
-  const maxD   = maxDate();
-  const y      = state.calYear;
-  const m      = state.calMonth;
+  const today = todayMidnight();
+  const maxD = maxDate();
+  const y = state.calYear;
+  const m = state.calMonth;
 
   // Offset lunes-primero: Dom=6, Lun=0, Mar=1, ...
   const firstDow = new Date(y, m, 1).getDay();
-  const offset   = firstDow === 0 ? 6 : firstDow - 1;
+  const offset = firstDow === 0 ? 6 : firstDow - 1;
   const totalDays = new Date(y, m + 1, 0).getDate();
 
   // Controles de navegación
-  const prevLast  = new Date(y, m, 0);   // último día del mes anterior
+  const prevLast = new Date(y, m, 0);   // último día del mes anterior
   prevLast.setHours(0, 0, 0, 0);
   const nextFirst = new Date(y, m + 1, 1);
   nextFirst.setHours(0, 0, 0, 0);
@@ -195,17 +195,17 @@ function tplCalendar() {
   for (let d = 1; d <= totalDays; d++) {
     const date = new Date(y, m, d);
     date.setHours(0, 0, 0, 0);
-    const iso        = dateToISO(date);
-    const isSun      = date.getDay() === 0;
-    const isPast     = date < today;
-    const isFuture   = date > maxD;
+    const iso = dateToISO(date);
+    const isSun = date.getDay() === 0;
+    const isPast = date < today;
+    const isFuture = date > maxD;
     const isDisabled = isSun || isPast || isFuture;
-    const isToday    = date.getTime() === today.getTime();
+    const isToday = date.getTime() === today.getTime();
     const isSelected = state.date === iso;
 
     let cls = 'cal-day';
     if (isDisabled) cls += ' cal-disabled';
-    if (isSun)      cls += ' cal-sunday';
+    if (isSun) cls += ' cal-sunday';
     if (isToday && !isDisabled) cls += ' cal-today';
     if (isSelected) cls += ' cal-selected';
 
@@ -226,7 +226,7 @@ function tplCalendar() {
     ? `<svg viewBox="0 0 16 16" width="13" height="13" fill="none" style="margin-right:5px;vertical-align:-1px">
         <circle cx="8" cy="8" r="7" fill="#c9a96e"/>
         <polyline points="4.5,8 7,10.5 11.5,5.5" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-       </svg>${spanishDate(state.date)}`
+      </svg>${spanishDate(state.date)}`
     : 'Selecciona un día disponible';
 
   return `
@@ -267,8 +267,8 @@ function tplCalendar() {
       <!-- Grilla de días -->
       <div class="cal-grid">
         ${DAY_LABELS.map((n, i) =>
-          `<div class="cal-weekday${i === 6 ? ' cal-weekday-sun' : ''}">${n}</div>`
-        ).join('')}
+    `<div class="cal-weekday${i === 6 ? ' cal-weekday-sun' : ''}">${n}</div>`
+  ).join('')}
         ${cells}
       </div>
 
@@ -299,7 +299,7 @@ function calNext() {
 }
 
 /* ============================================================
-   TEMPLATE PASO 2 — Fecha y hora
+  TEMPLATE PASO 2 — Fecha y hora
 ============================================================ */
 function tplStep2() {
   const s = state.specialist;
@@ -358,11 +358,11 @@ function tplStep2() {
 }
 
 /* ============================================================
-   TEMPLATE PASO 3 — Datos y confirmación
+  TEMPLATE PASO 3 — Datos y confirmación
 ============================================================ */
 function tplStep3() {
-  const s    = state.specialist;
-  const f    = state.form;
+  const s = state.specialist;
+  const f = state.form;
   const opts = SERVICES.map(sv =>
     `<option value="${sv}"${f.service === sv ? ' selected' : ''}>${sv}</option>`
   ).join('');
@@ -394,7 +394,7 @@ function tplStep3() {
         <div class="form-group">
           <label class="form-label" for="iName">Nombre completo</label>
           <input class="form-input" type="text" id="iName" name="name"
-            placeholder="Ej: María García" value="${f.name||''}"
+            placeholder="Ej: María García" value="${f.name || ''}"
             required autocomplete="name"
             oninput="filterName(this)">
         </div>
@@ -402,7 +402,7 @@ function tplStep3() {
         <div class="form-group">
           <label class="form-label" for="iPhone">Teléfono</label>
           <input class="form-input" type="tel" id="iPhone" name="phone"
-            placeholder="Ej: 300 123 4567" value="${f.phone||''}"
+            placeholder="Ej: 300 123 4567" value="${f.phone || ''}"
             required autocomplete="tel"
             oninput="filterPhone(this)">
         </div>
@@ -410,7 +410,7 @@ function tplStep3() {
         <div class="form-group">
           <label class="form-label" for="iEmail">Correo electrónico</label>
           <input class="form-input" type="email" id="iEmail" name="email"
-            placeholder="Ej: maria@correo.com" value="${f.email||''}"
+            placeholder="Ej: maria@correo.com" value="${f.email || ''}"
             required autocomplete="email">
         </div>
 
@@ -435,8 +435,8 @@ function tplStep3() {
             </button>
             <div class="cs-dropdown" role="listbox" aria-label="Servicios disponibles">
               ${SERVICES.map(sv => {
-                const sel = f.service === sv;
-                return `
+    const sel = f.service === sv;
+    return `
                   <div
                     class="cs-option${sel ? ' cs-selected' : ''}"
                     role="option"
@@ -449,7 +449,7 @@ function tplStep3() {
                         stroke-linecap="round" stroke-linejoin="round"/>
                     </svg>` : ''}
                   </div>`;
-              }).join('')}
+  }).join('')}
             </div>
           </div>
         </div>
@@ -462,28 +462,23 @@ function tplStep3() {
               class="pay-btn${f.payment === 'Efectivo' ? ' pay-selected' : ''}"
               data-method="Efectivo"
               onclick="pickPayment('Efectivo')">
-              <svg class="pay-icon" viewBox="0 0 56 56" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
-                <!-- Billete inclinado -->
-                <g transform="rotate(-38 21 18)">
-                  <rect x="2" y="9" width="30" height="18" rx="2" stroke-width="2.2"/>
-                  <circle cx="17" cy="18" r="4.5" stroke-width="2"/>
-                  <circle cx="27.5" cy="13" r="1.6" fill="currentColor" stroke="none"/>
-                </g>
-                <!-- Puño dando (derecha) -->
-                <path d="M32 8 C36 5 44 6 45 11 C46 15 43 21 39 22 L35 24 C32 25 29 22 29 18 L29 13 C29 10 30 8 32 8Z" stroke-width="2.2"/>
-                <!-- Manga derecha -->
-                <rect x="43" y="7" width="11" height="16" rx="2" stroke-width="2.2"/>
-                <!-- Mano recibiendo (abajo) -->
-                <path d="M11 47 C9 43 11 39 15 39 L42 39 C48 39 51 42 49 47 C48 50 44 51 40 51 L15 51 C12 51 11 49 11 47Z" stroke-width="2.2"/>
-                <!-- Dedos -->
-                <path d="M17 39 Q16 34 19 36" stroke-width="2"/>
-                <path d="M23 39 Q22 33 25 35" stroke-width="2"/>
-                <path d="M29 39 Q28 33 31 35" stroke-width="2"/>
-                <!-- Manga izquierda -->
-                <rect x="1" y="39" width="11" height="15" rx="2" stroke-width="2.2"/>
-                <!-- Línea billete en palma -->
-                <line x1="19" y1="45" x2="37" y2="45" stroke-width="1.8"/>
-                <circle cx="17" cy="45" r="1.6" fill="currentColor" stroke="none"/>
+              <svg class="pay-icon" viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.3">
+                <!-- Billete trasero superior-derecho -->
+                <rect x="36" y="2" width="24" height="13" rx="2.5" transform="rotate(12 48 8.5)"/>
+                <!-- Billete trasero inferior-izquierdo -->
+                <rect x="4" y="49" width="24" height="13" rx="2.5" transform="rotate(12 16 55.5)"/>
+                <!-- Billete principal -->
+                <rect x="2" y="16" width="60" height="34" rx="5"/>
+                <!-- Brackets en esquinas -->
+                <path d="M9 22 L9 28 M9 22 L15 22"/>
+                <path d="M55 22 L55 28 M55 22 L49 22"/>
+                <path d="M9 44 L9 38 M9 44 L15 44"/>
+                <path d="M55 44 L55 38 M55 44 L49 44"/>
+                <!-- Círculo central -->
+                <circle cx="32" cy="33" r="11"/>
+                <!-- Signo $ -->
+                <line x1="32" y1="25" x2="32" y2="41" stroke-width="2"/>
+                <path d="M35.5 29 C35.5 26.5 28.5 26.5 28.5 29.5 C28.5 32.5 35.5 33 35.5 36 C35.5 39 28.5 39 28.5 36.5" stroke-width="2" fill="none"/>
               </svg>
               <span class="pay-label">Efectivo</span>
             </button>
@@ -492,10 +487,25 @@ function tplStep3() {
               class="pay-btn${f.payment === 'Tarjeta' ? ' pay-selected' : ''}"
               data-method="Tarjeta"
               onclick="pickPayment('Tarjeta')">
-              <svg class="pay-icon" viewBox="0 0 32 24" fill="none">
-                <rect x="1" y="1" width="30" height="22" rx="3" stroke="currentColor" stroke-width="1.8"/>
-                <line x1="1" y1="8" x2="31" y2="8" stroke="currentColor" stroke-width="3"/>
-                <rect x="4" y="13" width="8" height="4" rx="1" stroke="currentColor" stroke-width="1.5"/>
+              <svg class="pay-icon" viewBox="0 0 68 58" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.3">
+                <!-- Tarjeta trasera -->
+                <rect x="16" y="2" width="50" height="32" rx="6" transform="rotate(-16 41 18)"/>
+                <!-- Tarjeta frontal -->
+                <rect x="2" y="21" width="60" height="35" rx="6"/>
+                <!-- Chip -->
+                <rect x="9" y="29" width="14" height="11" rx="3"/>
+                <rect x="12" y="33" width="8" height="3" rx="1.5" stroke-width="2"/>
+                <!-- Punto NFC -->
+                <circle cx="40" cy="39" r="1.8" fill="currentColor" stroke="none"/>
+                <!-- Ondas NFC -->
+                <path d="M 44,35 A 4,4 0 0 1 44,43" stroke-width="2"/>
+                <path d="M 44,32 A 7,7 0 0 1 44,46" stroke-width="2"/>
+                <!-- Líneas número -->
+                <line x1="9" y1="47" x2="22" y2="47"/>
+                <line x1="26" y1="47" x2="39" y2="47"/>
+                <line x1="43" y1="47" x2="56" y2="47"/>
+                <!-- Línea nombre -->
+                <line x1="9" y1="52" x2="32" y2="52"/>
               </svg>
               <span class="pay-label">Tarjeta</span>
             </button>
@@ -540,10 +550,10 @@ function tplStep3() {
 }
 
 /* ============================================================
-   TEMPLATE PANTALLA DE CONFIRMACIÓN
+  TEMPLATE PANTALLA DE CONFIRMACIÓN
 ============================================================ */
 function tplConfirm() {
-  const s         = state.specialist;
+  const s = state.specialist;
   const firstName = (state.form.name || '').split(' ')[0];
 
   return `
@@ -577,7 +587,7 @@ function tplConfirm() {
 }
 
 /* ============================================================
-   ACCIONES
+  ACCIONES
 ============================================================ */
 
 function pickSpecialist(id) {
@@ -641,11 +651,11 @@ function goTo(step) {
 function snapshotForm() {
   const get = id => { const el = document.getElementById(id); return el ? el.value : ''; };
   state.form = {
-    name:    get('iName'),
-    phone:   get('iPhone'),
-    email:   get('iEmail'),
-    service: state.form.service  || '',
-    payment: state.form.payment  || '',
+    name: get('iName'),
+    phone: get('iPhone'),
+    email: get('iEmail'),
+    service: state.form.service || '',
+    payment: state.form.payment || '',
   };
 }
 
@@ -714,17 +724,17 @@ function submitForm(e) {
   snapshotForm();
 
   // Mensajes de validación en español
-  const nameEl  = document.getElementById('iName');
+  const nameEl = document.getElementById('iName');
   const phoneEl = document.getElementById('iPhone');
   const emailEl = document.getElementById('iEmail');
 
   if (nameEl) nameEl.setCustomValidity(
-    !nameEl.value.trim()                                   ? 'Por favor ingresa tu nombre completo' :
-    /[^A-Za-záéíóúÁÉÍÓÚñÑüÜ\s]/.test(nameEl.value)        ? 'El nombre solo puede contener letras'  : ''
+    !nameEl.value.trim() ? 'Por favor ingresa tu nombre completo' :
+      /[^A-Za-záéíóúÁÉÍÓÚñÑüÜ\s]/.test(nameEl.value) ? 'El nombre solo puede contener letras' : ''
   );
   if (phoneEl) phoneEl.setCustomValidity(
-    !phoneEl.value        ? 'Por favor ingresa tu número de teléfono' :
-    /\D/.test(phoneEl.value) ? 'El teléfono solo puede contener números' : ''
+    !phoneEl.value ? 'Por favor ingresa tu número de teléfono' :
+      /\D/.test(phoneEl.value) ? 'El teléfono solo puede contener números' : ''
   );
   if (emailEl) emailEl.setCustomValidity(
     !emailEl.value ? 'Por favor ingresa tu correo electrónico' : ''
@@ -771,21 +781,21 @@ function submitForm(e) {
 function restart() {
   const now = new Date();
   state = {
-    step:      1,
+    step: 1,
     specialist: null,
-    date:       '',
-    time:       '',
-    form:       {},
-    calYear:    now.getFullYear(),
-    calMonth:   now.getMonth(),
+    date: '',
+    time: '',
+    form: {},
+    calYear: now.getFullYear(),
+    calMonth: now.getMonth(),
   };
   render();
 }
 
 /* ============================================================
-   CERRAR CUSTOM SELECT AL HACER CLICK FUERA
+  CERRAR CUSTOM SELECT AL HACER CLICK FUERA
 ============================================================ */
-document.addEventListener('click', function(e) {
+document.addEventListener('click', function (e) {
   const sel = document.getElementById('serviceSelect');
   if (sel && !sel.contains(e.target)) {
     sel.classList.remove('open');
@@ -795,6 +805,6 @@ document.addEventListener('click', function(e) {
 });
 
 /* ============================================================
-   INICIO
+  INICIO
 ============================================================ */
 render();
