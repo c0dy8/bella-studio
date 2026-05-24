@@ -2,19 +2,19 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
-  --bg:         #09080a;           /* negro profundo cálido */
-  --bg-2:       #110f12;           /* negro secundario */
-  --surface:    #1c191e;           /* superficie de tarjetas */
-  --surface-2:  #26222a;           /* superficie elevada */
-  --text:       #f0ece3;           /* blanco cálido */
-  --text-light: #7a7270;           /* gris dorado */
-  --primary:    #c9a96e;           /* dorado principal */
+  --bg:         #0e0c09;           /* espresso profundo */
+  --bg-2:       #171410;           /* fondo secundario */
+  --surface:    #201c17;           /* superficie tarjetas */
+  --surface-2:  #2c2720;           /* superficie elevada */
+  --text:       #f5f0e8;           /* crema brillante */
+  --text-light: #8a8078;           /* arena cálido */
+  --primary:    #c9a96e;           /* dorado */
   --primary-dk: #a07838;           /* dorado oscuro */
-  --accent:     #30282e;           /* borde sutil */
+  --accent:     #302820;           /* borde cálido */
   --gold:       #e8ca78;           /* dorado brillante */
   --white:      #ffffff;
   --sh-primary: 0 8px 32px rgba(201,169,110,.28);
-  --sh-card:    0 4px 24px rgba(0,0,0,.55);
+  --sh-card:    0 4px 24px rgba(0,0,0,.6);
   --r-card:     20px;
   --r-btn:      16px;
 }
@@ -24,7 +24,7 @@ html { scroll-behavior: smooth; }
 body {
   font-family: 'Montserrat', sans-serif;
   font-weight: 400;
-  background: radial-gradient(ellipse at top, #18141a 0%, var(--bg) 60%);
+  background: radial-gradient(ellipse at top, #231e16 0%, var(--bg) 65%);
   min-height: 100vh;
   color: var(--text);
   -webkit-font-smoothing: antialiased;
@@ -712,7 +712,7 @@ body {
 }
 
 .form-input::placeholder {
-  color: #3e3a38;
+  color: #504840;
   font-weight: 300;
 }
 
@@ -744,7 +744,7 @@ body {
   box-shadow: 0 0 0 3px rgba(201,169,110,.13);
 }
 
-.cs-placeholder { color: #3e3a38; font-weight: 300; }
+.cs-placeholder { color: #504840; font-weight: 300; }
 
 .cs-chevron {
   flex-shrink: 0;
