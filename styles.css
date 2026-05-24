@@ -41,6 +41,11 @@ body {
   to   { opacity: 1; transform: translateY(0); }
 }
 
+@keyframes float {
+  0%, 100% { transform: translateY(0px);   filter: drop-shadow(0 8px 18px rgba(184,106,74,.18)); }
+  50%       { transform: translateY(-10px); filter: drop-shadow(0 22px 32px rgba(184,106,74,.09)); }
+}
+
 @keyframes popIn {
   0%   { transform: scale(0); }
   65%  { transform: scale(1.18); }
@@ -59,6 +64,8 @@ body {
 .brand-header {
   text-align: center;
   padding: 36px 0 28px;
+  animation: float 4s ease-in-out infinite;
+  will-change: transform;
 }
 
 .brand-name {
