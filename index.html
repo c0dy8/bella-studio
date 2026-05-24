@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bella Studio – Agenda tu Cita</title>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;1,600;1,700&family=Lato:wght@300;400;700&display=swap"
+    rel="stylesheet"
+  >
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<div class="app">
+
+  <!-- ENCABEZADO DE MARCA -->
+  <header class="brand-header">
+    <h1 class="brand-name">Bella <span>Studio</span></h1>
+    <p class="brand-sub">Agenda tu cita</p>
+    <div class="brand-divider"></div>
+  </header>
+
+  <!-- BARRA DE PROGRESO -->
+  <nav id="progressBar" aria-label="Progreso de agendamiento">
+    <div class="progress-steps">
+
+      <div class="p-step">
+        <div class="p-circle active" id="c1" aria-current="step">1</div>
+        <span class="p-label active" id="l1">Especialista</span>
+      </div>
+
+      <div class="p-line"><div class="p-line-fill" id="ln1"></div></div>
+
+      <div class="p-step">
+        <div class="p-circle" id="c2">2</div>
+        <span class="p-label" id="l2">Fecha y hora</span>
+      </div>
+
+      <div class="p-line"><div class="p-line-fill" id="ln2"></div></div>
+
+      <div class="p-step">
+        <div class="p-circle" id="c3">3</div>
+        <span class="p-label" id="l3">Confirmar</span>
+      </div>
+
+    </div>
+  </nav>
+
+  <!-- CONTENIDO PRINCIPAL (renderizado dinámicamente por script.js) -->
+  <main id="main"></main>
+
+</div>
+
+<script src="script.js"></script>
+
+</body>
+</html>
