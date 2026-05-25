@@ -3,7 +3,14 @@
    SUPABASE_URL y SUPABASE_KEY se cargan desde config.js (ver config.example.js)
 =========================================================== */
 // Inicializar cliente (la librería fue añadida en el index.html)
-const supabaseClient = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY) : null;
+let supabaseClient = null;
+try {
+  if (window.supabase && SUPABASE_URL && SUPABASE_KEY) {
+    supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  }
+} catch (e) {
+  console.warn('⚠️ No se pudo inicializar Supabase. Cargando datos locales.', e);
+}
 
 /* ============================================================
    DATOS (Cargados dinámicamente con respaldo)
