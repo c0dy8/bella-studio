@@ -1,10 +1,7 @@
 /* ============================================================
    SUPABASE CLIENT CONFIG
+   SUPABASE_URL y SUPABASE_KEY se cargan desde config.js (ver config.example.js)
 =========================================================== */
-// ⚠️ IMPORTANTE: REEMPLAZA ESTAS VARIABLES CON TUS CREDENCIALES REALES
-const SUPABASE_URL = 'https://irhhoqrukaedcnrvmadn.supabase.co';
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlyaGhvcXJ1a2FlZGNucnZtYWRuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk2MjIzNjgsImV4cCI6MjA5NTE5ODM2OH0.PuM1obEGmzKOvE1E5160u9LcmDCLwHsL96oR9AoZrHs';
-
 // Inicializar cliente (la librería fue añadida en el index.html)
 const supabaseClient = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY) : null;
 

@@ -10,6 +10,10 @@ __pycache__/
 backend/.env
 .env
 .env.*
+!.env.example
+
+# Config del frontend con credenciales reales (usar config.example.js como plantilla)
+config.js
 
 # Logs y temporales
 *.log

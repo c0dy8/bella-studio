@@ -1,4 +1,6 @@
 [build]
+  # Genera config.js a partir de las variables de entorno configuradas en Netlify
+  command = "printf \"const SUPABASE_URL = '%s';\\nconst SUPABASE_KEY = '%s';\\n\" \"$SUPABASE_URL\" \"$SUPABASE_KEY\" > config.js"
   publish = "."
 
 [[headers]]
