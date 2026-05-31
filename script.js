@@ -30,16 +30,41 @@ const MOCK_SPECIALISTS = [
 
 const MOCK_SERVICES = ['Manicure','Pedicure','Uñas acrílicas','Corte','Coloración','Cejas','Pestañas','Facial'];
 
+const CACHE_KEY = 'bella_data';
+const CACHE_TTL = 5 * 60 * 1000; // 5 minutos
+
+function loadCache() {
+  try {
+    const raw = sessionStorage.getItem(CACHE_KEY);
+    if (!raw) return null;
+    const { data, ts } = JSON.parse(raw);
+    if (Date.now() - ts > CACHE_TTL) { sessionStorage.removeItem(CACHE_KEY); return null; }
+    return data;
+  } catch { return null; }
+}
+
+function saveCache(specialists, services) {
+  try {
+    sessionStorage.setItem(CACHE_KEY, JSON.stringify({ data: { specialists, services }, ts: Date.now() }));
+  } catch { /* sessionStorage lleno o bloqueado */ }
+}
+
 async function initData() {
-  // Renderizar inmediatamente con datos locales — pantalla disponible al instante
-  SPECIALISTS = MOCK_SPECIALISTS;
-  SERVICES    = MOCK_SERVICES;
+  // 1. Intentar caché — segunda visita o recarga ve datos reales al instante
+  const cached = loadCache();
+  if (cached) {
+    SPECIALISTS = cached.specialists;
+    SERVICES    = cached.services;
+  } else {
+    SPECIALISTS = MOCK_SPECIALISTS;
+    SERVICES    = MOCK_SERVICES;
+  }
   render();
 
   if (!supabaseClient) return;
 
   try {
-    // Ambas queries en paralelo — reduce el tiempo de espera a la más lenta, no a la suma
+    // 2. Ambas queries en paralelo
     const [specResult, servResult] = await Promise.all([
       supabaseClient.from('specialists').select('*, services(name)').order('id'),
       supabaseClient.from('services').select('*').order('id'),
@@ -56,8 +81,10 @@ async function initData() {
       updated = true;
     }
 
-    // Re-renderizar solo si el usuario sigue en el paso 1 y Supabase trajo datos reales
-    if (updated && state.step === 1) render();
+    if (updated) {
+      saveCache(SPECIALISTS, SERVICES);
+      if (state.step === 1) render();
+    }
   } catch (error) {
     console.error('💥 Error de red con Supabase, usando datos locales:', error);
   }

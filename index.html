@@ -5,6 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Bella Studio – Agenda tu Cita</title>
   <link rel="icon" type="image/svg+xml" href="favicon.svg">
+
+  <!-- Preconnect: el browser inicia DNS+TCP+TLS antes de necesitar cada dominio -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net">
+  <link rel="preconnect" href="https://i.pravatar.cc">
+
   <link
     href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500;1,600;1,700&family=Montserrat:wght@300;400;500;600;700&display=swap"
     rel="stylesheet"
@@ -53,7 +60,8 @@
 
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<!-- async: el SDK se descarga en paralelo sin bloquear el HTML ni otros scripts -->
+<script async src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="config.js"></script>
 <script src="script.js"></script>
 
