@@ -714,6 +714,9 @@ async function pickDate(iso) {
           <polyline points="4.5,8 7,10.5 11.5,5.5" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>${spanishDate(iso)}`;
     }
+
+    // Limpiar selección visual de hora inmediatamente
+    renderTimeGrid();
   }
 
   refreshNextBtn();
@@ -723,7 +726,10 @@ async function pickDate(iso) {
 }
 
 async function fetchBookedTimes(dateVal) {
-  if (!supabaseClient || !state.specialist) return;
+  if (!supabaseClient || !state.specialist) {
+    renderTimeGrid();
+    return;
+  }
   
   try {
     // Usar la función RPC segura para evadir RLS de forma controlada y proteger la privacidad
