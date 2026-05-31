@@ -31,50 +31,36 @@ const MOCK_SPECIALISTS = [
 const MOCK_SERVICES = ['Manicure','Pedicure','Uñas acrílicas','Corte','Coloración','Cejas','Pestañas','Facial'];
 
 async function initData() {
-  console.log('%c[Bella Studio] Iniciando carga de datos...', 'color: #b86a4a; font-weight: bold;');
-  
-  if (!supabaseClient) {
-    console.warn('⚠️ Supabase no está instanciado. Cargando datos locales de respaldo.');
-    SPECIALISTS = MOCK_SPECIALISTS;
-    SERVICES = MOCK_SERVICES;
-    render();
-    return;
-  }
-  
-  try {
-    // Obtener especialistas con sus servicios asociados usando la relación de base de datos
-    const { data: specData, error: specErr } = await supabaseClient.from('specialists').select('*, services(name)').order('id');
-    if (specErr) {
-      console.error('❌ Error de Supabase al obtener especialistas:', specErr);
-      SPECIALISTS = MOCK_SPECIALISTS;
-    } else if (!specData || specData.length === 0) {
-      console.warn('⚠️ La tabla specialists está vacía en Supabase. Cargando respaldo local.');
-      SPECIALISTS = MOCK_SPECIALISTS;
-    } else {
-      console.log('✅ Especialistas cargados con éxito:', specData);
-      SPECIALISTS = specData;
-    }
-
-    // Obtener servicios
-    const { data: servData, error: servErr } = await supabaseClient.from('services').select('*').order('id');
-    if (servErr) {
-      console.error('❌ Error de Supabase al obtener servicios:', servErr);
-      SERVICES = MOCK_SERVICES;
-    } else if (!servData || servData.length === 0) {
-      console.warn('⚠️ La tabla services está vacía en Supabase. Cargando respaldo local.');
-      SERVICES = MOCK_SERVICES;
-    } else {
-      console.log('✅ Servicios cargados con éxito:', servData);
-      SERVICES = servData.map(s => s.name);
-    }
-  } catch (error) {
-    console.error('💥 Excepción crítica de red al conectar con Supabase:', error);
-    SPECIALISTS = MOCK_SPECIALISTS;
-    SERVICES = MOCK_SERVICES;
-  }
-
-  // Renderizar la UI con los datos cargados (ya sean de Supabase o mocks)
+  // Renderizar inmediatamente con datos locales — pantalla disponible al instante
+  SPECIALISTS = MOCK_SPECIALISTS;
+  SERVICES    = MOCK_SERVICES;
   render();
+
+  if (!supabaseClient) return;
+
+  try {
+    // Ambas queries en paralelo — reduce el tiempo de espera a la más lenta, no a la suma
+    const [specResult, servResult] = await Promise.all([
+      supabaseClient.from('specialists').select('*, services(name)').order('id'),
+      supabaseClient.from('services').select('*').order('id'),
+    ]);
+
+    let updated = false;
+
+    if (!specResult.error && specResult.data?.length) {
+      SPECIALISTS = specResult.data;
+      updated = true;
+    }
+    if (!servResult.error && servResult.data?.length) {
+      SERVICES = servResult.data.map(s => s.name);
+      updated = true;
+    }
+
+    // Re-renderizar solo si el usuario sigue en el paso 1 y Supabase trajo datos reales
+    if (updated && state.step === 1) render();
+  } catch (error) {
+    console.error('💥 Error de red con Supabase, usando datos locales:', error);
+  }
 }
 
 const MONTH_NAMES = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
