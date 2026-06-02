@@ -22,13 +22,11 @@ const TIME_SLOTS = ['9:00am', '10:00am', '11:00am', '12:00pm', '2:00pm', '3:00pm
 
 // Datos locales de respaldo si la conexión a Supabase falla
 const MOCK_SPECIALISTS = [
-  { id: 1, name: 'Valentina', specialty: 'Uñas y acrílicas',   schedule: 'Lun–Sáb · 9am–5pm',  photo: 'https://i.pravatar.cc/200?img=1', services: [{ name: 'Manicure' }, { name: 'Pedicure' }, { name: 'Uñas acrílicas' }] },
-  { id: 2, name: 'Isabella',  specialty: 'Corte y coloración', schedule: 'Mar–Sáb · 10am–6pm', photo: 'https://i.pravatar.cc/200?img=5', services: [{ name: 'Corte' }, { name: 'Coloración' }] },
-  { id: 3, name: 'Camila',    specialty: 'Cejas y pestañas',   schedule: 'Lun–Vie · 9am–4pm',  photo: 'https://i.pravatar.cc/200?img=9', services: [{ name: 'Cejas' }, { name: 'Pestañas' }] },
-  { id: 4, name: 'Daniela',   specialty: 'Facial y masajes',   schedule: 'Mié–Dom · 11am–7pm', photo: 'https://i.pravatar.cc/200?img=10', services: [{ name: 'Facial' }] },
+  { id: 1, name: 'Lina',      specialty: 'Manicure y pedicure', schedule: 'Lun–Sáb · 9am–5pm',  photo: 'https://i.pravatar.cc/200?img=47', services: [{ name: 'Manicure' }, { name: 'Pedicure' }, { name: 'Uñas acrílicas' }, { name: 'Esmaltado semipermanente' }] },
+  { id: 2, name: 'Alejandra', specialty: 'Cejas y pestañas',    schedule: 'Lun–Sáb · 10am–6pm', photo: 'https://i.pravatar.cc/200?img=44', services: [{ name: 'Diseño de cejas' }, { name: 'Pestañas' }, { name: 'Lifting de pestañas' }, { name: 'Depilación facial' }] },
 ];
 
-const MOCK_SERVICES = ['Manicure','Pedicure','Uñas acrílicas','Corte','Coloración','Cejas','Pestañas','Facial'];
+const MOCK_SERVICES = ['Manicure','Pedicure','Uñas acrílicas','Esmaltado semipermanente','Diseño de cejas','Pestañas','Lifting de pestañas','Depilación facial'];
 
 const CACHE_KEY = 'bella_data';
 const CACHE_TTL = 5 * 60 * 1000; // 5 minutos
@@ -148,7 +146,7 @@ function spanishDate(iso) {
   BARRA DE PROGRESO
 ============================================================ */
 const CHECK_SVG = `<svg viewBox="0 0 20 20" width="15" height="15" fill="none">
-  <polyline points="4,10 8.5,15 16,6" stroke="#c9a96e" stroke-width="2.8"
+  <polyline points="4,10 8.5,15 16,6" stroke="#4d8b6a" stroke-width="2.8"
     stroke-linecap="round" stroke-linejoin="round"/>
 </svg>`;
 
@@ -303,7 +301,7 @@ function tplCalendar() {
   // Etiqueta de fecha seleccionada
   const labelText = state.date
     ? `<svg viewBox="0 0 16 16" width="13" height="13" fill="none" style="margin-right:5px;vertical-align:-1px">
-        <circle cx="8" cy="8" r="7" fill="#c9a96e"/>
+        <circle cx="8" cy="8" r="7" fill="#4d8b6a"/>
         <polyline points="4.5,8 7,10.5 11.5,5.5" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
       </svg>${spanishDate(state.date)}`
     : 'Selecciona un día disponible';
@@ -529,7 +527,7 @@ function tplStep3() {
                   >
                     <span>${sv}</span>
                     ${sel ? `<svg viewBox="0 0 16 16" width="15" height="15" fill="none">
-                      <polyline points="3,8 6.5,11.5 13,5" stroke="#b86a4a" stroke-width="2.2"
+                      <polyline points="3,8 6.5,11.5 13,5" stroke="#4d8b6a" stroke-width="2.2"
                         stroke-linecap="round" stroke-linejoin="round"/>
                     </svg>` : ''}
                   </div>`;
@@ -723,7 +721,7 @@ async function pickDate(iso) {
       label.classList.add('cal-label-active');
       label.innerHTML = `
         <svg viewBox="0 0 16 16" width="13" height="13" fill="none" style="margin-right:5px;vertical-align:-1px">
-          <circle cx="8" cy="8" r="7" fill="#c9a96e"/>
+          <circle cx="8" cy="8" r="7" fill="#4d8b6a"/>
           <polyline points="4.5,8 7,10.5 11.5,5.5" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>${spanishDate(iso)}`;
     }
@@ -882,7 +880,7 @@ function pickService(value) {
     if (isSel && !existing) {
       opt.insertAdjacentHTML('beforeend', `
         <svg viewBox="0 0 16 16" width="15" height="15" fill="none">
-          <polyline points="3,8 6.5,11.5 13,5" stroke="#b86a4a" stroke-width="2.2"
+          <polyline points="3,8 6.5,11.5 13,5" stroke="#4d8b6a" stroke-width="2.2"
             stroke-linecap="round" stroke-linejoin="round"/>
         </svg>`);
     } else if (!isSel && existing) {
