@@ -481,12 +481,15 @@ function pickServiceStep2(name, duration) {
     btn.classList.toggle('svc-selected', btn.dataset.service === name);
   });
 
-  // Si la hora elegida ya no cabe con la nueva duración, limpiarla
-  if (state.time && state.specialist) {
-    const closingMin = (state.specialist.closingHour || 17) * 60;
-    if (slotToMinutes(state.time) + duration > closingMin) {
-      state.time = '';
-    }
+  // Si la hora elegida está ocupada para esta duración, limpiarla
+  if (state.time) {
+    const booked = state.bookedTimes || [];
+    const startMin = slotToMinutes(state.time);
+    const overlap = booked.some(b => {
+      const bMin = slotToMinutes(b);
+      return bMin > startMin && bMin < startMin + duration;
+    });
+    if (overlap) state.time = '';
   }
 
   renderTimeGrid();
@@ -495,8 +498,7 @@ function pickServiceStep2(name, duration) {
 
 function timeGridHTML() {
   const s          = state.specialist;
-  const duration   = state.form.serviceDuration || 0;
-  const closingMin = s ? (s.closingHour || 17) * 60 : 1020;
+  const duration = state.form.serviceDuration || 0;
 
   if (!state.form.service) {
     return `<p class="no-slots-msg">Selecciona un servicio para ver los horarios disponibles.</p>`;
@@ -507,14 +509,15 @@ function timeGridHTML() {
 
   const booked = state.bookedTimes || [];
 
+  // Un slot está bloqueado si ya está reservado, o si una cita existente
+  // cae dentro de la ventana que ocuparía este servicio
   const isSlotDisabled = t => {
+    if (booked.includes(t)) return true;
     const startMin = slotToMinutes(t);
-    const endMin   = startMin + duration;
-    if (booked.includes(t))         return true;
-    if (endMin > closingMin)         return true;
-    // Verificar solapamiento: alguna cita ocupada cae dentro de la ventana del servicio
-    if (booked.some(b => { const bMin = slotToMinutes(b); return bMin > startMin && bMin < endMin; })) return true;
-    return false;
+    return booked.some(b => {
+      const bMin = slotToMinutes(b);
+      return bMin > startMin && bMin < startMin + duration;
+    });
   };
 
   const allDisabled = TIME_SLOTS.every(isSlotDisabled);
@@ -525,12 +528,9 @@ function timeGridHTML() {
   return TIME_SLOTS.map(t => {
     const sel      = state.time === t;
     const disabled = isSlotDisabled(t);
-    const startMin = slotToMinutes(t);
-    const endMin   = startMin + duration;
-    const title    = endMin > closingMin          ? 'No alcanza antes del cierre'
-                   : booked.includes(t)           ? 'Horario ocupado'
-                   : booked.some(b => { const bMin = slotToMinutes(b); return bMin > startMin && bMin < endMin; })
-                                                  ? 'Hay una cita en ese rango horario' : '';
+    const title    = booked.includes(t)
+                   ? 'Horario ocupado'
+                   : disabled ? 'Hay una cita en ese rango horario' : '';
     return `
       <button
         class="time-btn${sel ? ' selected' : ''}${disabled ? ' time-unavail' : ''}"
