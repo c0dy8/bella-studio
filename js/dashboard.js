@@ -37,7 +37,7 @@
      STATE
   ──────────────────────────────────────────────── */
   let supabaseClient   = null;
-  let allAppointments  = [];    // raw data from Supabase/mock
+  let allAppointments  = [];    // raw data from Supabase
   let filteredAppts    = [];    // after search/filter
   let currentPage      = 1;
   let currentWeekStart = null;  // Monday of displayed week
@@ -63,88 +63,53 @@
   }
 
   /* ─────────────────────────────────────────────
-     MOCK DATA (shown while Supabase loads / fails)
-  ──────────────────────────────────────────────── */
-  function generateMockData() {
-    const specialists = ['Lina', 'Alejandra'];
-    const services = {
-      'Lina': [
-        'Pies tradicional','Pies semipermanente',
-        'Manos tradicional','Manos semipermanente',
-        'Poligel','Retoque de poligel','Presón','Base rubber'
-      ],
-      'Alejandra': [
-        'Diseño de cejas','Pestañas clásicas',
-        'Lifting de pestañas','Depilación facial'
-      ]
-    };
-    const payments = ['Efectivo','Transferencia','Nequi','Tarjeta','Daviplata'];
-    const names = [
-      'Valentina García','Sofía Martínez','Isabella López','Camila Rodríguez',
-      'Daniela Hernández','Mariana Torres','Gabriela Flores','Lucía Sánchez',
-      'Natalia Ramírez','Andrea Castro','Paula Moreno','Catalina Jiménez',
-      'Alejandra Díaz','Laura Vargas','Diana Ruiz','Monica Reyes'
-    ];
-
-    const today = new Date();
-    today.setHours(0,0,0,0);
-
-    const appts = [];
-    for (let i = 0; i < 60; i++) {
-      const dayOffset = Math.floor(Math.random() * 50) - 20;
-      const d = new Date(today);
-      d.setDate(d.getDate() + dayOffset);
-      if (d.getDay() === 0) continue; // no Sundays
-
-      const specName = specialists[Math.floor(Math.random() * 2)];
-      const specId   = specName === 'Lina' ? 1 : 2;
-      const slot     = TIME_SLOTS[Math.floor(Math.random() * TIME_SLOTS.length)];
-
-      appts.push({
-        id: 1000 + i,
-        specialist_id:    specId,
-        appointment_date: d.toISOString().slice(0,10),
-        appointment_time: slot,
-        customer_name:    names[Math.floor(Math.random() * names.length)],
-        customer_phone:   '+57 ' + (300 + Math.floor(Math.random()*99)) + ' ' + Math.floor(1000000 + Math.random()*9000000),
-        customer_email:   '',
-        service_name:     services[specName][Math.floor(Math.random() * services[specName].length)],
-        payment_method:   payments[Math.floor(Math.random() * payments.length)],
-        created_at:       new Date(d.getTime() - 86400000 * Math.random() * 7).toISOString(),
-        _specialist_name: specName,
-      });
-    }
-    return appts;
-  }
-
-  /* ─────────────────────────────────────────────
      FETCH DATA
   ──────────────────────────────────────────────── */
   async function fetchAppointments() {
     if (!supabaseClient) {
-      return generateMockData();
+      showConnectionError('Supabase no está configurado. Verifica config.js.');
+      return [];
     }
     try {
       const { data, error } = await supabaseClient
         .from('appointments')
-        .select('*')
+        .select('*, specialists(name)')
         .order('appointment_date', { ascending: true })
         .order('appointment_time', { ascending: true });
 
       if (error) {
         console.error('Error fetching appointments:', error);
-        return generateMockData();
+        showConnectionError('Error al conectar con la base de datos.');
+        return [];
       }
 
-      // Enrich with specialist name
+      hideConnectionError();
       return (data || []).map(row => ({
         ...row,
-        _specialist_name: row.specialist_id === 1 ? 'Lina' : 'Alejandra',
+        _specialist_name: row.specialists?.name || (row.specialist_id === 1 ? 'Lina' : 'Alejandra'),
       }));
     } catch (e) {
       console.error('Fetch failed:', e);
-      return generateMockData();
+      showConnectionError('Error de red al consultar Supabase.');
+      return [];
     }
+  }
+
+  function showConnectionError(msg) {
+    let banner = document.getElementById('db-error-banner');
+    if (!banner) {
+      banner = document.createElement('div');
+      banner.id = 'db-error-banner';
+      banner.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:9999;background:#c0392b;color:#fff;text-align:center;padding:10px 16px;font-size:.82rem;font-family:Montserrat,sans-serif;font-weight:600;letter-spacing:.04em;';
+      document.body.prepend(banner);
+    }
+    banner.textContent = '⚠ ' + msg;
+    banner.style.display = 'block';
+  }
+
+  function hideConnectionError() {
+    const banner = document.getElementById('db-error-banner');
+    if (banner) banner.style.display = 'none';
   }
 
   /* ─────────────────────────────────────────────
