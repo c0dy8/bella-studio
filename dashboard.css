@@ -968,12 +968,15 @@ body {
 
 .chart-canvas-wrap {
   width: 100%;
-  overflow: hidden;
+  height: 280px;
+  position: relative;
 }
 
 .chart-canvas-wrap canvas {
+  position: absolute;
+  inset: 0;
   width: 100% !important;
-  height: auto !important;
+  height: 100% !important;
   display: block;
 }
 
@@ -981,12 +984,12 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 24px;
+  gap: 20px;
 }
 
 .donut-wrap canvas {
-  max-width: 200px;
-  max-height: 200px;
+  width: 200px !important;
+  height: 200px !important;
   display: block;
 }
 

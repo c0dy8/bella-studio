@@ -537,140 +537,163 @@
   }
 
   /* ─────────────────────────────────────────────
-     CHARTS — pure Canvas
+     CHARTS — Canvas con DPR correcto
   ──────────────────────────────────────────────── */
+
+  // Escala el canvas al tamaño real del contenedor × devicePixelRatio
+  // para evitar pixelación en pantallas Retina/HiDPI
+  function setupCanvas(canvas) {
+    const dpr  = window.devicePixelRatio || 1;
+    const rect = canvas.parentElement.getBoundingClientRect();
+    const W    = Math.floor(rect.width)  || canvas.offsetWidth  || 500;
+    const H    = Math.floor(rect.height) || canvas.offsetHeight || 280;
+    canvas.width        = W * dpr;
+    canvas.height       = H * dpr;
+    canvas.style.width  = W + 'px';
+    canvas.style.height = H + 'px';
+    const ctx = canvas.getContext('2d');
+    ctx.scale(dpr, dpr);
+    return { ctx, W, H };
+  }
+
   function renderBarChart(appts) {
     const canvas = document.getElementById('barChart');
     if (!canvas) return;
 
-    const ctx    = canvas.getContext('2d');
-    const W      = canvas.width;
-    const H      = canvas.height;
-    const pad    = { top: 24, right: 20, bottom: 44, left: 40 };
+    const { ctx, W, H } = setupCanvas(canvas);
+    const pad = { top: 32, right: 24, bottom: 52, left: 44 };
 
-    // Count by weekday (last 30 days)
-    const cutoff  = new Date(today());
+    // Contar por día de semana (últimos 30 días)
+    const cutoff    = new Date(today());
     cutoff.setDate(cutoff.getDate() - 30);
     const cutoffStr = isoDate(cutoff);
 
-    const counts = [0,0,0,0,0,0,0]; // Mon–Sun
+    const counts = [0,0,0,0,0,0,0];
     appts.forEach(a => {
       if (a.appointment_date < cutoffStr) return;
       const d   = new Date(a.appointment_date + 'T12:00:00');
-      const dow = (d.getDay() + 6) % 7; // 0=Mon
+      const dow = (d.getDay() + 6) % 7;
       counts[dow]++;
     });
 
     const labels  = ['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'];
     const maxVal  = Math.max(...counts, 1);
-
     const chartW  = W - pad.left - pad.right;
-    const chartH  = H - pad.top - pad.bottom;
-    const barGap  = 8;
+    const chartH  = H - pad.top  - pad.bottom;
+    const barGap  = 10;
     const barW    = (chartW - barGap * (labels.length + 1)) / labels.length;
+    const gridLines = 4;
 
-    ctx.clearRect(0, 0, W, H);
+    // ── Fondo degradado sutil ──
+    const bgGrad = ctx.createLinearGradient(0, 0, 0, H);
+    bgGrad.addColorStop(0, 'rgba(242,247,244,0)');
+    bgGrad.addColorStop(1, 'rgba(194,221,208,0.08)');
+    ctx.fillStyle = bgGrad;
+    ctx.fillRect(0, 0, W, H);
 
-    // Grid lines
-    ctx.strokeStyle = 'rgba(194,221,208,0.5)';
-    ctx.lineWidth   = 1;
-    const gridLines = 5;
+    // ── Líneas de cuadrícula ──
     for (let i = 0; i <= gridLines; i++) {
       const y = pad.top + chartH - (i / gridLines) * chartH;
+      ctx.strokeStyle = i === 0
+        ? 'rgba(90,112,96,0.25)'
+        : 'rgba(194,221,208,0.45)';
+      ctx.lineWidth = i === 0 ? 1.5 : 1;
+      ctx.setLineDash(i === 0 ? [] : [4, 4]);
       ctx.beginPath();
       ctx.moveTo(pad.left, y);
       ctx.lineTo(pad.left + chartW, y);
       ctx.stroke();
+      ctx.setLineDash([]);
 
-      // Y label
+      // Etiquetas Y
       ctx.fillStyle = '#8fa496';
-      ctx.font = '500 11px Montserrat, sans-serif';
+      ctx.font = '500 10px Montserrat, sans-serif';
       ctx.textAlign = 'right';
-      ctx.fillText(Math.round((i / gridLines) * maxVal), pad.left - 6, y + 4);
+      ctx.textBaseline = 'middle';
+      ctx.fillText(Math.round((i / gridLines) * maxVal), pad.left - 8, y);
     }
 
-    // Bars (animated via GSAP-compatible approach using a progress variable)
-    const barData = labels.map((label, i) => {
-      const x = pad.left + barGap + i * (barW + barGap);
-      return { label, count: counts[i], x };
-    });
-
-    let progress = { value: 0 };
-
-    function drawBars(p) {
-      // Clear chart area only
-      ctx.clearRect(pad.left, pad.top, chartW, chartH);
-
-      // Redraw grid
-      ctx.strokeStyle = 'rgba(194,221,208,0.5)';
-      ctx.lineWidth = 1;
-      for (let i = 0; i <= gridLines; i++) {
-        const y = pad.top + chartH - (i / gridLines) * chartH;
-        ctx.beginPath();
-        ctx.moveTo(pad.left, y);
-        ctx.lineTo(pad.left + chartW, y);
-        ctx.stroke();
-      }
-
-      barData.forEach(({ label, count, x }, idx) => {
-        const fullH = (count / maxVal) * chartH;
-        const animH = fullH * p;
-        const y     = pad.top + chartH - animH;
-
-        // Gradient
-        const grad = ctx.createLinearGradient(x, y, x, pad.top + chartH);
-        grad.addColorStop(0, '#4d8b6a');
-        grad.addColorStop(1, 'rgba(77,139,106,0.35)');
-
-        // Bar (rounded top)
-        const r = Math.min(6, barW / 2, animH > 0 ? animH : 0);
-        ctx.beginPath();
-        ctx.moveTo(x + r, y);
-        ctx.lineTo(x + barW - r, y);
-        ctx.quadraticCurveTo(x + barW, y, x + barW, y + r);
-        ctx.lineTo(x + barW, pad.top + chartH);
-        ctx.lineTo(x, pad.top + chartH);
-        ctx.lineTo(x, y + r);
-        ctx.quadraticCurveTo(x, y, x + r, y);
-        ctx.closePath();
-        ctx.fillStyle = grad;
-        ctx.fill();
-
-        // Count label on top (only at end)
-        if (p >= 0.99 && count > 0) {
-          ctx.fillStyle = '#4d8b6a';
-          ctx.font = '700 11px Montserrat, sans-serif';
-          ctx.textAlign = 'center';
-          ctx.fillText(count, x + barW / 2, y - 6);
-        }
-      });
-    }
-
-    // Clear full canvas then draw static parts once
-    ctx.clearRect(0, 0, W, H);
-
-    // Y labels
-    for (let i = 0; i <= gridLines; i++) {
-      const y = pad.top + chartH - (i / gridLines) * chartH;
-      ctx.fillStyle = '#8fa496';
-      ctx.font = '500 11px Montserrat, sans-serif';
-      ctx.textAlign = 'right';
-      ctx.fillText(Math.round((i / gridLines) * maxVal), pad.left - 6, y + 4);
-    }
-
-    // X labels
+    // Etiquetas X
+    const barData = labels.map((label, i) => ({
+      label, count: counts[i],
+      x: pad.left + barGap + i * (barW + barGap)
+    }));
     barData.forEach(({ label, x }) => {
       ctx.fillStyle = '#5a7060';
       ctx.font = '600 11px Montserrat, sans-serif';
       ctx.textAlign = 'center';
-      ctx.fillText(label, x + barW / 2, pad.top + chartH + 18);
+      ctx.textBaseline = 'top';
+      ctx.fillText(label, x + barW / 2, pad.top + chartH + 12);
     });
 
-    // Animate with gsap or fallback
+    const prog = { v: 0 };
+
+    function drawBars(p) {
+      ctx.clearRect(pad.left, pad.top, chartW, chartH + 2);
+
+      // Redibujar guías dentro del área de barras
+      for (let i = 1; i <= gridLines; i++) {
+        const y = pad.top + chartH - (i / gridLines) * chartH;
+        ctx.strokeStyle = 'rgba(194,221,208,0.45)';
+        ctx.lineWidth = 1;
+        ctx.setLineDash([4, 4]);
+        ctx.beginPath();
+        ctx.moveTo(pad.left, y);
+        ctx.lineTo(pad.left + chartW, y);
+        ctx.stroke();
+        ctx.setLineDash([]);
+      }
+
+      barData.forEach(({ count, x }) => {
+        const fullH = (count / maxVal) * chartH;
+        const animH = fullH * p;
+        if (animH < 1) return;
+        const y = pad.top + chartH - animH;
+        const r = Math.min(8, barW / 2, animH);
+
+        // Sombra sutil bajo la barra
+        ctx.shadowColor   = 'rgba(77,139,106,0.18)';
+        ctx.shadowBlur    = 10;
+        ctx.shadowOffsetY = 4;
+
+        // Degradado vertical
+        const grad = ctx.createLinearGradient(x, y, x, pad.top + chartH);
+        grad.addColorStop(0, '#4d8b6a');
+        grad.addColorStop(0.6, '#5fa07c');
+        grad.addColorStop(1, 'rgba(77,139,106,0.2)');
+
+        ctx.beginPath();
+        ctx.moveTo(x + r, y);
+        ctx.lineTo(x + barW - r, y);
+        ctx.arcTo(x + barW, y, x + barW, y + r, r);
+        ctx.lineTo(x + barW, pad.top + chartH);
+        ctx.lineTo(x, pad.top + chartH);
+        ctx.arcTo(x, y, x + r, y, r);
+        ctx.closePath();
+        ctx.fillStyle = grad;
+        ctx.fill();
+
+        ctx.shadowColor = 'transparent';
+        ctx.shadowBlur  = 0;
+        ctx.shadowOffsetY = 0;
+
+        // Valor encima de la barra
+        if (p >= 0.98 && count > 0) {
+          ctx.fillStyle    = '#36694f';
+          ctx.font         = '700 11px Montserrat, sans-serif';
+          ctx.textAlign    = 'center';
+          ctx.textBaseline = 'bottom';
+          ctx.fillText(count, x + barW / 2, y - 4);
+        }
+      });
+    }
+
     if (window.gsap) {
-      gsap.to(progress, {
-        value: 1, duration: 1.2, ease: 'power2.out',
-        onUpdate: function() { drawBars(progress.value); }
+      gsap.fromTo(prog, { v: 0 }, {
+        v: 1, duration: 1.4,
+        ease: 'expo.out',
+        onUpdate: () => drawBars(prog.v),
+        onComplete: () => drawBars(1),
       });
     } else {
       drawBars(1);
@@ -678,56 +701,71 @@
   }
 
   function renderDonutChart(appts) {
-    const canvas    = document.getElementById('donutChart');
-    const legendEl  = document.getElementById('donutLegend');
+    const canvas   = document.getElementById('donutChart');
+    const legendEl = document.getElementById('donutLegend');
     if (!canvas || !legendEl) return;
 
-    const ctx       = canvas.getContext('2d');
-    const W         = canvas.width;
-    const H         = canvas.height;
-    const cx        = W / 2;
-    const cy        = H / 2;
-    const outerR    = Math.min(W, H) / 2 - 10;
-    const innerR    = outerR * 0.55;
+    const { ctx, W, H } = setupCanvas(canvas);
+    const cx     = W / 2;
+    const cy     = H / 2;
+    const outerR = Math.min(W, H) / 2 - 16;
+    const innerR = outerR * 0.58;
 
-    // Count payment methods
+    // Contar métodos de pago
     const counts = {};
     appts.forEach(a => {
-      const method = a.payment_method || 'Otro';
-      counts[method] = (counts[method] || 0) + 1;
+      const m = a.payment_method || 'Otro';
+      counts[m] = (counts[m] || 0) + 1;
     });
 
-    const total   = Object.values(counts).reduce((s, v) => s + v, 0) || 1;
-    const entries = Object.entries(counts).sort((a,b) => b[1]-a[1]);
+    const total   = Object.values(counts).reduce((s, v) => s + v, 0) || 0;
+    const entries = Object.entries(counts).sort((a, b) => b[1] - a[1]);
+    const colors  = entries.map(([name]) => PAYMENT_COLORS[name] || '#8fa496');
 
-    const colors = entries.map(([name]) =>
-      PAYMENT_COLORS[name] || '#8fa496'
-    );
+    // Leyenda
+    legendEl.innerHTML = entries.length === 0
+      ? '<p style="color:#8fa496;font-size:.75rem;text-align:center;padding:12px 0">Sin datos</p>'
+      : entries.map(([name, count], i) =>
+          '<div class="donut-legend-item">' +
+          '<div class="donut-legend-color" style="background:' + colors[i] + ';box-shadow:0 2px 6px ' + colors[i] + '55"></div>' +
+          '<span class="donut-legend-label">' + escapeHtml(name) + '</span>' +
+          '<span class="donut-legend-pct">' + Math.round((count / (total || 1)) * 100) + '%</span>' +
+          '</div>'
+        ).join('');
 
-    // Build legend
-    legendEl.innerHTML = entries.map(([name, count], i) =>
-      '<div class="donut-legend-item">' +
-      '<div class="donut-legend-color" style="background:' + colors[i] + '"></div>' +
-      '<span class="donut-legend-label">' + escapeHtml(name) + '</span>' +
-      '<span class="donut-legend-pct">' + Math.round((count/total)*100) + '%</span>' +
-      '</div>'
-    ).join('');
+    if (total === 0) {
+      ctx.fillStyle    = '#c2ddd0';
+      ctx.textAlign    = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.font         = '500 12px Montserrat, sans-serif';
+      ctx.fillText('Sin citas aún', cx, cy);
+      return;
+    }
 
-    // Draw with animation
-    let progress = { value: 0 };
+    const prog = { v: 0 };
 
     function drawDonut(p) {
       ctx.clearRect(0, 0, W, H);
 
-      let startAngle = -Math.PI / 2;
-      const gap      = 0.025; // gap between slices in radians
+      // Pista de fondo
+      ctx.beginPath();
+      ctx.arc(cx, cy, outerR, 0, Math.PI * 2);
+      ctx.arc(cx, cy, innerR, Math.PI * 2, 0, true);
+      ctx.fillStyle = 'rgba(194,221,208,0.18)';
+      ctx.fill();
 
-      entries.forEach(([name, count], i) => {
+      let startAngle = -Math.PI / 2;
+      const gap      = 0.03;
+
+      entries.forEach(([, count], i) => {
         const fraction   = count / total;
         const sliceAngle = fraction * Math.PI * 2 * p;
         const endAngle   = startAngle + sliceAngle - gap;
-
         if (sliceAngle <= gap) { startAngle += sliceAngle; return; }
+
+        // Sombra
+        ctx.shadowColor   = colors[i] + '44';
+        ctx.shadowBlur    = 12;
 
         ctx.beginPath();
         ctx.arc(cx, cy, outerR, startAngle, endAngle);
@@ -736,26 +774,35 @@
         ctx.fillStyle = colors[i];
         ctx.fill();
 
+        ctx.shadowColor = 'transparent';
+        ctx.shadowBlur  = 0;
+
         startAngle += sliceAngle;
       });
 
-      // Center text
-      if (p >= 0.99) {
-        ctx.fillStyle = '#1a2a1e';
-        ctx.font = '700 28px Cormorant Garamond, serif';
-        ctx.textAlign = 'center';
+      // Texto central
+      const labelAlpha = Math.max(0, (p - 0.85) / 0.15);
+      if (labelAlpha > 0) {
+        ctx.globalAlpha  = labelAlpha;
+        ctx.fillStyle    = '#1a2a1e';
+        ctx.font         = '700 30px Cormorant Garamond, serif';
+        ctx.textAlign    = 'center';
         ctx.textBaseline = 'middle';
-        ctx.fillText(total, cx, cy - 8);
-        ctx.font = '500 10px Montserrat, sans-serif';
-        ctx.fillStyle = '#8fa496';
+        ctx.fillText(total, cx, cy - 9);
+        ctx.font         = '500 10px Montserrat, sans-serif';
+        ctx.fillStyle    = '#8fa496';
+        ctx.letterSpacing = '0.08em';
         ctx.fillText('citas', cx, cy + 12);
+        ctx.globalAlpha  = 1;
       }
     }
 
     if (window.gsap) {
-      gsap.to(progress, {
-        value: 1, duration: 1.4, ease: 'power2.out',
-        onUpdate: function() { drawDonut(progress.value); }
+      gsap.fromTo(prog, { v: 0 }, {
+        v: 1, duration: 1.5,
+        ease: 'expo.out',
+        onUpdate: () => drawDonut(prog.v),
+        onComplete: () => drawDonut(1),
       });
     } else {
       drawDonut(1);
