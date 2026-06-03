@@ -22,11 +22,61 @@ const TIME_SLOTS = ['9:00am', '10:00am', '11:00am', '12:00pm', '2:00pm', '3:00pm
 
 // Datos locales de respaldo si la conexión a Supabase falla
 const MOCK_SPECIALISTS = [
-  { id: 1, name: 'Lina',      specialty: 'Manicure y pedicure', schedule: 'Lun–Sáb · 9am–5pm',  photo: 'https://i.pravatar.cc/200?img=47', services: [{ name: 'Manicure' }, { name: 'Pedicure' }, { name: 'Uñas acrílicas' }, { name: 'Esmaltado semipermanente' }] },
-  { id: 2, name: 'Alejandra', specialty: 'Cejas y pestañas',    schedule: 'Lun–Sáb · 10am–6pm', photo: 'https://i.pravatar.cc/200?img=44', services: [{ name: 'Diseño de cejas' }, { name: 'Pestañas' }, { name: 'Lifting de pestañas' }, { name: 'Depilación facial' }] },
+  {
+    id: 1, name: 'Lina', specialty: 'Manicure y pedicure',
+    schedule: 'Lun–Sáb · 9am–5pm', closingHour: 17,
+    photo: 'https://i.pravatar.cc/200?img=47',
+    serviceCategories: [
+      { category: 'Pies', items: [
+        { name: 'Pies tradicional',    duration: 90 },
+        { name: 'Pies semipermanente', duration: 90 },
+      ]},
+      { category: 'Manos', items: [
+        { name: 'Manos tradicional',    duration: 90 },
+        { name: 'Manos semipermanente', duration: 90 },
+        { name: 'Poligel',              duration: 180 },
+        { name: 'Retoque de poligel',   duration: 120 },
+      ]},
+      { category: 'Otros', items: [
+        { name: 'Presón',      duration: 120 },
+        { name: 'Base rubber', duration: 120 },
+      ]},
+    ],
+    services: [
+      { name: 'Pies tradicional' }, { name: 'Pies semipermanente' },
+      { name: 'Manos tradicional' }, { name: 'Manos semipermanente' },
+      { name: 'Poligel' }, { name: 'Retoque de poligel' },
+      { name: 'Presón' }, { name: 'Base rubber' },
+    ],
+  },
+  {
+    id: 2, name: 'Alejandra', specialty: 'Cejas y pestañas',
+    schedule: 'Lun–Sáb · 10am–6pm', closingHour: 18,
+    photo: 'https://i.pravatar.cc/200?img=44',
+    serviceCategories: [
+      { category: 'Cejas', items: [
+        { name: 'Diseño de cejas', duration: 45 },
+      ]},
+      { category: 'Pestañas', items: [
+        { name: 'Pestañas clásicas',    duration: 90 },
+        { name: 'Lifting de pestañas',  duration: 60 },
+      ]},
+      { category: 'Depilación', items: [
+        { name: 'Depilación facial', duration: 30 },
+      ]},
+    ],
+    services: [
+      { name: 'Diseño de cejas' }, { name: 'Pestañas clásicas' },
+      { name: 'Lifting de pestañas' }, { name: 'Depilación facial' },
+    ],
+  },
 ];
 
-const MOCK_SERVICES = ['Manicure','Pedicure','Uñas acrílicas','Esmaltado semipermanente','Diseño de cejas','Pestañas','Lifting de pestañas','Depilación facial'];
+const MOCK_SERVICES = [
+  'Pies tradicional','Pies semipermanente',
+  'Manos tradicional','Manos semipermanente','Poligel','Retoque de poligel','Presón','Base rubber',
+  'Diseño de cejas','Pestañas clásicas','Lifting de pestañas','Depilación facial',
+];
 
 const CACHE_KEY = 'bella_data';
 const CACHE_TTL = 5 * 60 * 1000; // 5 minutos
@@ -101,7 +151,7 @@ let state = {
   specialist: null,                   // objeto de SPECIALISTS
   date:       '',                     // "YYYY-MM-DD"
   time:       '',                     // "HH:MMam/pm"
-  form:       { name: '', phone: '', email: '', service: '', payment: '' }, // { name, phone, email, service }
+  form:       { name: '', phone: '', email: '', service: '', serviceDuration: 0, payment: '' },
   calYear:    _now.getFullYear(),     // año visible en el calendario
   calMonth:   _now.getMonth(),        // mes visible en el calendario (0-11)
   bookedTimes: [],                    // Lista de horas ocupadas para el especialista y fecha seleccionada
@@ -376,23 +426,128 @@ function calNext() {
 }
 
 /* ============================================================
+  HELPERS DE DURACIÓN Y SERVICIOS
+============================================================ */
+function slotToMinutes(slot) {
+  const lower = slot.toLowerCase();
+  const isPm  = lower.includes('pm');
+  const digits = lower.replace(/[apm\s]/g, '');
+  const [h, m] = digits.split(':').map(Number);
+  let hours = h;
+  if (isPm && h !== 12) hours += 12;
+  if (!isPm && h === 12) hours = 0;
+  return hours * 60 + (m || 0);
+}
+
+function formatDuration(minutes) {
+  const h = Math.floor(minutes / 60);
+  const m = minutes % 60;
+  if (m === 0) return `${h}h`;
+  return `${h}h ${m}min`;
+}
+
+function tplServiceSelector() {
+  const s = state.specialist;
+  if (!s || !s.serviceCategories) return '';
+  return `
+    <div class="svc-selector" id="svcSelector">
+      <label class="form-label" style="margin-bottom:10px">Servicio</label>
+      ${s.serviceCategories.map(cat => `
+        <div class="svc-category">
+          <div class="svc-cat-title">${cat.category}</div>
+          <div class="svc-items">
+            ${cat.items.map(item => {
+              const sel = state.form.service === item.name;
+              return `
+                <button type="button"
+                  class="svc-btn${sel ? ' svc-selected' : ''}"
+                  data-service="${item.name}"
+                  data-duration="${item.duration}"
+                  onclick="pickServiceStep2('${item.name}', ${item.duration})">
+                  <span class="svc-name">${item.name}</span>
+                  <span class="svc-dur">${formatDuration(item.duration)}</span>
+                </button>`;
+            }).join('')}
+          </div>
+        </div>`).join('')}
+    </div>`;
+}
+
+function pickServiceStep2(name, duration) {
+  state.form.service         = name;
+  state.form.serviceDuration = duration;
+
+  document.querySelectorAll('.svc-btn').forEach(btn => {
+    btn.classList.toggle('svc-selected', btn.dataset.service === name);
+  });
+
+  // Si la hora elegida ya no cabe con la nueva duración, limpiarla
+  if (state.time && state.specialist) {
+    const closingMin = (state.specialist.closingHour || 17) * 60;
+    if (slotToMinutes(state.time) + duration > closingMin) {
+      state.time = '';
+    }
+  }
+
+  renderTimeGrid();
+  refreshNextBtn();
+}
+
+function timeGridHTML() {
+  const s          = state.specialist;
+  const duration   = state.form.serviceDuration || 0;
+  const closingMin = s ? (s.closingHour || 17) * 60 : 1020;
+
+  if (!state.form.service) {
+    return `<p class="no-slots-msg">Selecciona un servicio para ver los horarios disponibles.</p>`;
+  }
+  if (!state.date) {
+    return `<p class="no-slots-msg">Selecciona una fecha para ver los horarios disponibles.</p>`;
+  }
+
+  const booked = state.bookedTimes || [];
+
+  const isSlotDisabled = t => {
+    const startMin = slotToMinutes(t);
+    const endMin   = startMin + duration;
+    if (booked.includes(t))         return true;
+    if (endMin > closingMin)         return true;
+    // Verificar solapamiento: alguna cita ocupada cae dentro de la ventana del servicio
+    if (booked.some(b => { const bMin = slotToMinutes(b); return bMin > startMin && bMin < endMin; })) return true;
+    return false;
+  };
+
+  const allDisabled = TIME_SLOTS.every(isSlotDisabled);
+  if (allDisabled) {
+    return `<p class="no-slots-msg">No hay horarios disponibles para <strong>${state.form.service}</strong> en esta fecha. Por favor elige otro día.</p>`;
+  }
+
+  return TIME_SLOTS.map(t => {
+    const sel      = state.time === t;
+    const disabled = isSlotDisabled(t);
+    const startMin = slotToMinutes(t);
+    const endMin   = startMin + duration;
+    const title    = endMin > closingMin          ? 'No alcanza antes del cierre'
+                   : booked.includes(t)           ? 'Horario ocupado'
+                   : booked.some(b => { const bMin = slotToMinutes(b); return bMin > startMin && bMin < endMin; })
+                                                  ? 'Hay una cita en ese rango horario' : '';
+    return `
+      <button
+        class="time-btn${sel ? ' selected' : ''}${disabled ? ' time-unavail' : ''}"
+        aria-pressed="${sel}"
+        aria-label="Hora ${t}${title ? ` — ${title}` : ''}"
+        onclick="${disabled ? '' : `pickTime('${t}')`}"
+        ${disabled ? 'disabled' : ''}
+        title="${title}"
+      >${t}</button>`;
+  }).join('');
+}
+
+/* ============================================================
   TEMPLATE PASO 2 — Fecha y hora
 ============================================================ */
 function tplStep2() {
   const s = state.specialist;
-  const timeButtons = TIME_SLOTS.map(t => {
-    const sel = state.time === t;
-    const isBooked = state.bookedTimes && state.bookedTimes.includes(t);
-    return `
-      <button
-        class="time-btn${sel ? ' selected' : ''}"
-        aria-pressed="${sel}"
-        aria-label="Hora ${t}"
-        onclick="pickTime('${t}')"
-        ${isBooked ? 'disabled' : ''}
-      >${t}</button>`;
-  }).join('');
-
   return `
     <div class="step-view">
       <button class="btn-back" onclick="goTo(1)" aria-label="Volver a elegir especialista">
@@ -412,19 +567,21 @@ function tplStep2() {
       </div>
 
       <h2 class="sec-title">Fecha y hora</h2>
-      <p class="sec-sub">Elige tu día y bloque horario preferido</p>
+      <p class="sec-sub">Elige el servicio, tu día y horario preferido</p>
+
+      ${tplServiceSelector()}
 
       <label class="form-label" style="margin-bottom:12px">Fecha</label>
       <div id="calContainer">${tplCalendar()}</div>
 
       <label class="form-label" style="margin-bottom:10px; margin-top:4px">Hora</label>
-      <div class="time-grid">${timeButtons}</div>
+      <div class="time-grid">${timeGridHTML()}</div>
 
       <button
         class="btn-primary"
         id="btnNext"
         onclick="goTo(3)"
-        ${!state.date || !state.time ? 'disabled' : ''}
+        ${!state.form.service || !state.date || !state.time ? 'disabled' : ''}
         aria-label="Ir al paso de confirmación"
       >
         Siguiente
@@ -440,14 +597,8 @@ function tplStep2() {
   TEMPLATE PASO 3 — Datos y confirmación
 ============================================================ */
 function tplStep3() {
-  const s    = state.specialist;
-  const f    = state.form;
-  
-  // Filtrar servicios específicos del especialista seleccionado
-  const specServices = s && s.services ? s.services.map(sv => sv.name) : [];
-  const opts = specServices.map(sv =>
-    `<option value="${sv}"${f.service === sv ? ' selected' : ''}>${sv}</option>`
-  ).join('');
+  const s = state.specialist;
+  const f = state.form;
 
   return `
     <div class="step-view">
@@ -468,6 +619,7 @@ function tplStep3() {
           <div class="sum-name">${s.name}</div>
           <div class="sum-specialty">${s.specialty}</div>
           <div class="sum-datetime">📅 ${spanishDate(state.date)} · ${state.time}</div>
+          <div class="sum-service">✦ ${f.service}${f.serviceDuration ? ` · ${formatDuration(f.serviceDuration)}` : ''}</div>
         </div>
       </div>
 
@@ -497,42 +649,10 @@ function tplStep3() {
         </div>
 
         <div class="form-group">
-          <label class="form-label" for="cs-trigger">Servicio deseado</label>
-          <div class="custom-select" id="serviceSelect">
-            <button
-              class="cs-trigger"
-              id="cs-trigger"
-              type="button"
-              aria-haspopup="listbox"
-              aria-expanded="false"
-              onclick="toggleServiceSelect()"
-            >
-              <span class="cs-value${f.service ? '' : ' cs-placeholder'}" id="csLabel">
-                ${f.service || 'Selecciona un servicio'}
-              </span>
-              <svg class="cs-chevron" viewBox="0 0 20 20" width="16" height="16" fill="none">
-                <polyline points="4,7 10,13 16,7" stroke="currentColor" stroke-width="2.2"
-                  stroke-linecap="round" stroke-linejoin="round"/>
-              </svg>
-            </button>
-            <div class="cs-dropdown" role="listbox" aria-label="Servicios disponibles">
-              ${specServices.map(sv => {
-                const sel = f.service === sv;
-                return `
-                  <div
-                    class="cs-option${sel ? ' cs-selected' : ''}"
-                    role="option"
-                    aria-selected="${sel}"
-                    onclick="pickService('${sv}')"
-                  >
-                    <span>${sv}</span>
-                    ${sel ? `<svg viewBox="0 0 16 16" width="15" height="15" fill="none">
-                      <polyline points="3,8 6.5,11.5 13,5" stroke="#4d8b6a" stroke-width="2.2"
-                        stroke-linecap="round" stroke-linejoin="round"/>
-                    </svg>` : ''}
-                  </div>`;
-  }).join('')}
-            </div>
+          <label class="form-label">Servicio</label>
+          <div class="svc-readonly">
+            <span class="svc-readonly-name">${f.service}</span>
+            ${f.serviceDuration ? `<span class="svc-readonly-dur">${formatDuration(f.serviceDuration)}</span>` : ''}
           </div>
         </div>
 
@@ -675,10 +795,12 @@ function tplConfirm() {
 function pickSpecialist(id) {
   state.specialist = SPECIALISTS.find(s => s.id === id);
   
-  // Limpiar selección de fecha y hora previas al cambiar de especialista
+  // Limpiar selección previa al cambiar de especialista
   state.date = '';
   state.time = '';
   state.bookedTimes = [];
+  state.form.service = '';
+  state.form.serviceDuration = 0;
 
   document.querySelectorAll('.spec-card').forEach(c => {
     const isSelected = Number(c.dataset.id) === id;
@@ -770,19 +892,7 @@ async function fetchBookedTimes(dateVal) {
 function renderTimeGrid() {
   const grid = document.querySelector('.time-grid');
   if (!grid) return;
-  
-  grid.innerHTML = TIME_SLOTS.map(t => {
-    const sel = state.time === t;
-    const isBooked = state.bookedTimes && state.bookedTimes.includes(t);
-    return `
-      <button
-        class="time-btn${sel ? ' selected' : ''}"
-        aria-pressed="${sel}"
-        aria-label="Hora ${t}"
-        onclick="pickTime('${t}')"
-        ${isBooked ? 'disabled' : ''}
-      >${t}</button>`;
-  }).join('');
+  grid.innerHTML = timeGridHTML();
 }
 
 function pickTime(t) {
@@ -823,7 +933,7 @@ function pickPaymentMethod(method) {
 
 function refreshNextBtn() {
   const btn = document.getElementById('btnNext');
-  if (btn) btn.disabled = !state.date || !state.time;
+  if (btn) btn.disabled = !state.form.service || !state.date || !state.time;
 }
 
 function goTo(step) {
@@ -836,11 +946,12 @@ function snapshotForm() {
   const get = id => { const el = document.getElementById(id); return el ? el.value : ''; };
   const pmRadio = document.querySelector('input[name="paymentMethod"]:checked');
   state.form = {
-    name: get('iName'),
-    phone: get('iPhone'),
-    email: get('iEmail'),
-    service: state.form.service || '',
-    payment: state.form.payment || '',
+    name:            get('iName'),
+    phone:           get('iPhone'),
+    email:           get('iEmail'),
+    service:         state.form.service         || '',
+    serviceDuration: state.form.serviceDuration || 0,
+    payment:         state.form.payment         || '',
   };
 }
 
@@ -1004,7 +1115,7 @@ function restart() {
   state.specialist = null;
   state.date = '';
   state.time = '';
-  state.form = { name: '', phone: '', email: '', service: '', payment: '' };
+  state.form = { name: '', phone: '', email: '', service: '', serviceDuration: 0, payment: '' };
   state.calYear = now.getFullYear();
   state.calMonth = now.getMonth();
   state.bookedTimes = [];

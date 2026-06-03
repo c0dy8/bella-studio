@@ -898,6 +898,128 @@ body {
   animation: shake .3s ease;
 }
 
+/* ===== SELECTOR DE SERVICIOS (paso 2) ===== */
+.svc-selector { margin-bottom: 22px; }
+
+.svc-category { margin-bottom: 14px; }
+
+.svc-cat-title {
+  font-size: .58rem;
+  font-weight: 700;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--text-light);
+  margin-bottom: 7px;
+  padding-left: 2px;
+}
+
+.svc-items { display: flex; flex-direction: column; gap: 7px; }
+
+.svc-btn {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  background: var(--surface);
+  border: 1.5px solid var(--accent);
+  border-radius: 14px;
+  cursor: pointer;
+  font-family: inherit;
+  width: 100%;
+  text-align: left;
+  transition: border-color .2s, background .2s, box-shadow .2s;
+}
+
+.svc-btn:hover {
+  border-color: var(--primary);
+  background: var(--surface-2);
+}
+
+.svc-btn.svc-selected {
+  border-color: var(--primary);
+  background: linear-gradient(135deg, rgba(74,139,106,.08), rgba(122,187,160,.12));
+  box-shadow: 0 2px 12px rgba(74,139,106,.18);
+}
+
+.svc-name {
+  font-size: .82rem;
+  font-weight: 500;
+  color: var(--text);
+}
+
+.svc-btn.svc-selected .svc-name { color: var(--primary-dk); font-weight: 600; }
+
+.svc-dur {
+  font-size: .68rem;
+  font-weight: 600;
+  color: var(--text-light);
+  background: var(--bg-2);
+  padding: 3px 9px;
+  border-radius: 20px;
+  flex-shrink: 0;
+  margin-left: 8px;
+}
+
+.svc-btn.svc-selected .svc-dur {
+  background: rgba(74,139,106,.14);
+  color: var(--primary-dk);
+}
+
+/* Servicio lectura en paso 3 */
+.svc-readonly {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 13px 16px;
+  background: var(--surface-2);
+  border: 1.5px solid var(--accent);
+  border-radius: 14px;
+}
+
+.svc-readonly-name {
+  font-size: .88rem;
+  font-weight: 600;
+  color: var(--primary-dk);
+}
+
+.svc-readonly-dur {
+  font-size: .72rem;
+  font-weight: 600;
+  color: var(--text-light);
+  background: rgba(74,139,106,.12);
+  padding: 3px 10px;
+  border-radius: 20px;
+}
+
+/* Resumen de servicio en tarjeta */
+.sum-service {
+  font-size: .72rem;
+  font-weight: 500;
+  color: var(--primary);
+  margin-top: 3px;
+  letter-spacing: .01em;
+}
+
+/* Horarios no disponibles */
+.time-btn.time-unavail {
+  opacity: .35;
+  text-decoration: line-through;
+  cursor: not-allowed;
+}
+
+/* Mensaje sin horarios */
+.no-slots-msg {
+  font-size: .78rem;
+  color: var(--text-light);
+  text-align: center;
+  padding: 16px 14px;
+  background: var(--surface-2);
+  border: 1.5px dashed var(--accent);
+  border-radius: 12px;
+  line-height: 1.6;
+  width: 100%;
+}
+
 /* ===== PANTALLA DE CONFIRMACIÓN ===== */
 .confirm-screen {
   text-align: center;
