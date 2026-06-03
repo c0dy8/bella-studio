@@ -24,7 +24,7 @@ const TIME_SLOTS = ['9:00am', '10:00am', '11:00am', '12:00pm', '2:00pm', '3:00pm
 const MOCK_SPECIALISTS = [
   {
     id: 1, name: 'Lina', specialty: 'Manicure y pedicure',
-    schedule: 'Lun–Sáb · 9am–5pm', closingHour: 17,
+    schedule: 'Lun–Sáb · 9am–5:30pm', closingMinutes: 1050, // 5:30pm
     photo: 'https://i.pravatar.cc/200?img=47',
     serviceCategories: [
       { category: 'Pies', items: [
@@ -51,7 +51,7 @@ const MOCK_SPECIALISTS = [
   },
   {
     id: 2, name: 'Alejandra', specialty: 'Cejas y pestañas',
-    schedule: 'Lun–Sáb · 10am–6pm', closingHour: 18,
+    schedule: 'Lun–Sáb · 10am–6pm', closingMinutes: 1080, // 6:00pm
     photo: 'https://i.pravatar.cc/200?img=44',
     serviceCategories: [
       { category: 'Cejas', items: [
@@ -481,15 +481,13 @@ function pickServiceStep2(name, duration) {
     btn.classList.toggle('svc-selected', btn.dataset.service === name);
   });
 
-  // Si la hora elegida está ocupada para esta duración, limpiarla
-  if (state.time) {
-    const booked = state.bookedTimes || [];
-    const startMin = slotToMinutes(state.time);
-    const overlap = booked.some(b => {
-      const bMin = slotToMinutes(b);
-      return bMin > startMin && bMin < startMin + duration;
-    });
-    if (overlap) state.time = '';
+  // Si la hora elegida ya no es válida con la nueva duración, limpiarla
+  if (state.time && state.specialist) {
+    const closingMin = state.specialist.closingMinutes || 1020;
+    const startMin   = slotToMinutes(state.time);
+    const booked     = state.bookedTimes || [];
+    const overlap    = booked.some(b => { const bMin = slotToMinutes(b); return bMin > startMin && bMin < startMin + duration; });
+    if (startMin + duration > closingMin || overlap) state.time = '';
   }
 
   renderTimeGrid();
@@ -498,7 +496,8 @@ function pickServiceStep2(name, duration) {
 
 function timeGridHTML() {
   const s          = state.specialist;
-  const duration = state.form.serviceDuration || 0;
+  const duration   = state.form.serviceDuration || 0;
+  const closingMin = s ? (s.closingMinutes || 1020) : 1020;
 
   if (!state.form.service) {
     return `<p class="no-slots-msg">Selecciona un servicio para ver los horarios disponibles.</p>`;
@@ -509,15 +508,15 @@ function timeGridHTML() {
 
   const booked = state.bookedTimes || [];
 
-  // Un slot está bloqueado si ya está reservado, o si una cita existente
-  // cae dentro de la ventana que ocuparía este servicio
   const isSlotDisabled = t => {
-    if (booked.includes(t)) return true;
     const startMin = slotToMinutes(t);
-    return booked.some(b => {
-      const bMin = slotToMinutes(b);
-      return bMin > startMin && bMin < startMin + duration;
-    });
+    const endMin   = startMin + duration;
+    // Bloqueado si ya está reservado
+    if (booked.includes(t)) return true;
+    // Bloqueado si el servicio terminaría después de la hora de cierre
+    if (endMin > closingMin) return true;
+    // Bloqueado si una cita existente cae dentro de la ventana del servicio
+    return booked.some(b => { const bMin = slotToMinutes(b); return bMin > startMin && bMin < endMin; });
   };
 
   const allDisabled = TIME_SLOTS.every(isSlotDisabled);
@@ -528,9 +527,11 @@ function timeGridHTML() {
   return TIME_SLOTS.map(t => {
     const sel      = state.time === t;
     const disabled = isSlotDisabled(t);
-    const title    = booked.includes(t)
-                   ? 'Horario ocupado'
-                   : disabled ? 'Hay una cita en ese rango horario' : '';
+    const startMin = slotToMinutes(t);
+    const endMin   = startMin + duration;
+    const title    = booked.includes(t)           ? 'Horario ocupado'
+                   : endMin > closingMin           ? 'No alcanza antes del cierre'
+                   : disabled                      ? 'Hay una cita en ese rango horario' : '';
     return `
       <button
         class="time-btn${sel ? ' selected' : ''}${disabled ? ' time-unavail' : ''}"
