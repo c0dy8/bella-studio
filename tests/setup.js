@@ -1,10 +1,10 @@
-// Mocks de globals que script.js necesita al cargarse en Node
+// Mocks de globals que los módulos necesitan en Node/Jest
 global.SUPABASE_URL = '';
 global.SUPABASE_KEY = '';
 global.window = global.window || global;
 global.window.supabase = null;
+global.sessionStorage = { getItem: () => null, setItem: () => {}, removeItem: () => {} };
 
-// DOM mínimo que render() y updateProgress() necesitan
 document.body.innerHTML = `
   <div id="main"></div>
   <nav id="progressBar">

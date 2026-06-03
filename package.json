@@ -1,8 +1,9 @@
 {
   "name": "bella-studio",
   "version": "1.0.0",
+  "type": "module",
   "scripts": {
-    "test": "jest --coverage"
+    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js --coverage"
   },
   "devDependencies": {
     "jest": "^29.7.0",
@@ -11,6 +12,7 @@
   "jest": {
     "testEnvironment": "jsdom",
     "setupFiles": ["./tests/setup.js"],
-    "testMatch": ["**/tests/**/*.test.js"]
+    "testMatch": ["**/tests/**/*.test.js"],
+    "transform": {}
   }
 }

@@ -6,7 +6,7 @@
   <title>Bella Studio – Agenda tu Cita</title>
   <link rel="icon" type="image/svg+xml" href="favicon.svg">
 
-  <!-- Preconnect: el browser inicia DNS+TCP+TLS antes de necesitar cada dominio -->
+  <!-- Preconnect: DNS+TLS anticipado para recursos externos -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preconnect" href="https://cdn.jsdelivr.net">
@@ -22,48 +22,40 @@
 
 <div class="app">
 
-  <!-- ENCABEZADO DE MARCA -->
   <header class="brand-header">
     <h1 class="brand-name">Bella <span>Studio</span></h1>
     <p class="brand-sub">Agenda tu cita</p>
     <div class="brand-divider"></div>
   </header>
 
-  <!-- BARRA DE PROGRESO -->
   <nav id="progressBar" aria-label="Progreso de agendamiento">
     <div class="progress-steps">
-
       <div class="p-step">
         <div class="p-circle active" id="c1" aria-current="step">1</div>
         <span class="p-label active" id="l1">Especialista</span>
       </div>
-
       <div class="p-line"><div class="p-line-fill" id="ln1"></div></div>
-
       <div class="p-step">
         <div class="p-circle" id="c2">2</div>
         <span class="p-label" id="l2">Fecha y hora</span>
       </div>
-
       <div class="p-line"><div class="p-line-fill" id="ln2"></div></div>
-
       <div class="p-step">
         <div class="p-circle" id="c3">3</div>
         <span class="p-label" id="l3">Confirmar</span>
       </div>
-
     </div>
   </nav>
 
-  <!-- CONTENIDO PRINCIPAL (renderizado dinámicamente por script.js) -->
   <main id="main"></main>
 
 </div>
 
-<!-- async: el SDK se descarga en paralelo sin bloquear el HTML ni otros scripts -->
-<script async src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<!-- Scripts síncronos primero: establecen globals antes del módulo -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="config.js"></script>
-<script src="script.js"></script>
+<!-- Módulo principal: carga toda la app con ES Modules -->
+<script type="module" src="js/main.js"></script>
 
 </body>
 </html>
