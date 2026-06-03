@@ -10,7 +10,7 @@
   /* ─────────────────────────────────────────────
      CONFIG & CONSTANTS
   ──────────────────────────────────────────────── */
-  const POLL_INTERVAL_MS = 30_000;
+  const POLL_INTERVAL_MS = 10_000; // fallback cada 10s si Realtime falla
   const ROWS_PER_PAGE    = 10;
 
   const TIME_SLOTS = [
@@ -876,10 +876,37 @@
     }
   }
 
+  /* ─────────────────────────────────────────────
+     SUPABASE REALTIME — notificación instantánea
+  ──────────────────────────────────────────────── */
+  function startRealtime() {
+    if (!supabaseClient) return false;
+    try {
+      supabaseClient
+        .channel('dashboard-appointments')
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'appointments' },
+          () => {
+            // Nueva cita, cita editada o eliminada → recargar al instante
+            loadData(true);
+          }
+        )
+        .subscribe(status => {
+          if (status === 'SUBSCRIBED') {
+            console.log('✅ Supabase Realtime activo — actualizaciones instantáneas');
+          }
+        });
+      return true;
+    } catch (e) {
+      console.warn('Realtime no disponible, usando polling:', e);
+      return false;
+    }
+  }
+
   function startPolling() {
     clearInterval(pollTimer);
     pollTimer = setInterval(() => loadData(true), POLL_INTERVAL_MS);
-    // Update relative time label every 15s
     setInterval(updateRelativeTime, 15_000);
   }
 
@@ -1009,7 +1036,12 @@
     runEntranceAnimations();
 
     loadData(false).then(() => {
+      // Intentar Realtime primero; si no está disponible, usar polling
+      const realtimeOk = startRealtime();
+      if (!realtimeOk) startPolling();
+      // Siempre arrancar polling como red de seguridad
       startPolling();
+      setInterval(updateRelativeTime, 15_000);
     });
   }
 
