@@ -48,7 +48,18 @@ async function initData() {
     let updated = false;
 
     if (!specResult.error && specResult.data?.length) {
-      setSpecialists(specResult.data);
+      // Fusionar datos de Supabase (nombre, foto, etc.) con datos locales
+      // (serviceCategories, closingMinutes) que no existen en la BD
+      const enriched = specResult.data.map(supaSpec => {
+        const local = MOCK_SPECIALISTS.find(m => m.id === supaSpec.id);
+        return {
+          ...supaSpec,
+          serviceCategories: local?.serviceCategories || [],
+          closingMinutes:    local?.closingMinutes    || 1020,
+          services:          local?.services          || [],
+        };
+      });
+      setSpecialists(enriched);
       updated = true;
     }
     if (!servResult.error && servResult.data?.length) {
