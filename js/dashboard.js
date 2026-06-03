@@ -71,26 +71,27 @@
       return [];
     }
     try {
-      const { data, error } = await supabaseClient
+      const { data, error, status } = await supabaseClient
         .from('appointments')
-        .select('*, specialists(name)')
+        .select('*')
         .order('appointment_date', { ascending: true })
         .order('appointment_time', { ascending: true });
 
       if (error) {
-        console.error('Error fetching appointments:', error);
-        showConnectionError('Error al conectar con la base de datos.');
+        console.error('❌ Error Supabase:', error.message, '| status:', status, '| code:', error.code);
+        showConnectionError('Error BD: ' + error.message);
         return [];
       }
 
+      console.log('✅ Citas cargadas:', (data || []).length);
       hideConnectionError();
       return (data || []).map(row => ({
         ...row,
-        _specialist_name: row.specialists?.name || (row.specialist_id === 1 ? 'Lina' : 'Alejandra'),
+        _specialist_name: row.specialist_id === 1 ? 'Lina' : 'Alejandra',
       }));
     } catch (e) {
-      console.error('Fetch failed:', e);
-      showConnectionError('Error de red al consultar Supabase.');
+      console.error('💥 Fetch failed:', e);
+      showConnectionError('Error de red: ' + e.message);
       return [];
     }
   }
