@@ -88,7 +88,25 @@ export function pickServiceStep2(name, duration) {
     const closingMin = state.specialist.closingMinutes || 1020;
     const startMin   = slotToMinutes(state.time);
     const booked     = state.bookedTimes || [];
-    const overlap    = booked.some(b => { const bMin = slotToMinutes(b); return bMin > startMin && bMin < startMin + duration; });
+    
+    const getDuration = (svcName) => {
+      if (!state.specialist || !state.specialist.serviceCategories) return 60;
+      for (const cat of state.specialist.serviceCategories) {
+        const item = cat.items.find(i => i.name === svcName);
+        if (item) return item.duration;
+      }
+      return 60;
+    };
+
+    const overlap = booked.some(b => { 
+      const bTime = typeof b === 'object' ? b.appointment_time : b;
+      const bSvc  = typeof b === 'object' ? b.service_name : '';
+      const bStart = slotToMinutes(bTime);
+      const bDur   = bSvc ? getDuration(bSvc) : 60;
+      const bEnd   = bStart + bDur;
+      
+      return (startMin < bEnd) && ((startMin + duration) > bStart);
+    });
     if (startMin + duration > closingMin || overlap) state.time = '';
   }
 

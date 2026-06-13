@@ -28,7 +28,7 @@ export async function fetchBookedTimes(dateVal) {
       p_date: dateVal,
     });
     if (error) { console.error('❌ Error RPC citas ocupadas:', error); return []; }
-    return data ? data.map(row => (typeof row === 'object' && row !== null ? row.appointment_time : row)) : [];
+    return data || [];
   } catch (e) {
     console.error('💥 Error al consultar citas:', e);
     return [];

@@ -119,12 +119,38 @@ export function timeGridHTML() {
 
   const booked = state.bookedTimes || [];
 
+  const getDuration = (svcName) => {
+    if (!s || !s.serviceCategories) return 60;
+    for (const cat of s.serviceCategories) {
+      const item = cat.items.find(i => i.name === svcName);
+      if (item) return item.duration;
+    }
+    return 60;
+  };
+
   const isSlotDisabled = t => {
     const startMin = slotToMinutes(t);
     const endMin   = startMin + duration;
-    if (booked.includes(t))  return true;
+    
+    // Bloquear horas pasadas si la fecha seleccionada es hoy
+    const today = todayMidnight();
+    if (state.date === dateToISO(today)) {
+      const now = new Date();
+      const currentMin = now.getHours() * 60 + now.getMinutes();
+      if (startMin <= currentMin) return true;
+    }
+
     if (endMin > closingMin) return true;
-    return booked.some(b => { const bMin = slotToMinutes(b); return bMin > startMin && bMin < endMin; });
+    
+    return booked.some(b => { 
+      const bTime = typeof b === 'object' ? b.appointment_time : b;
+      const bSvc  = typeof b === 'object' ? b.service_name : '';
+      const bStart = slotToMinutes(bTime);
+      const bDur   = bSvc ? getDuration(bSvc) : 60;
+      const bEnd   = bStart + bDur;
+      
+      return (startMin < bEnd) && (endMin > bStart);
+    });
   };
 
   if (TIME_SLOTS.every(isSlotDisabled)) {
@@ -136,9 +162,13 @@ export function timeGridHTML() {
     const disabled = isSlotDisabled(t);
     const startMin = slotToMinutes(t);
     const endMin   = startMin + duration;
-    const title    = booked.includes(t)  ? 'Horario ocupado'
-                   : endMin > closingMin ? 'No alcanza antes del cierre'
-                   : disabled            ? 'Hay una cita en ese rango horario' : '';
+    
+    // Determine the specific reason for disabled slot
+    const isPast = state.date === dateToISO(todayMidnight()) && startMin <= (new Date().getHours() * 60 + new Date().getMinutes());
+    const title = isPast ? 'Hora ya pasada'
+                : endMin > closingMin ? 'No alcanza antes del cierre'
+                : disabled ? 'Hay una cita en ese rango horario' : '';
+
     return `
       <button
         class="time-btn${sel ? ' selected' : ''}${disabled ? ' time-unavail' : ''}"
